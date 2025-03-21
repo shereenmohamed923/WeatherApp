@@ -1,7 +1,7 @@
 package com.example.weatherapp.data.model
 
 data class CurrentWeatherResponse (
-    val coord: Coord,
+    val coord: Coordinate,
     val main: Main,
     val clouds: Clouds,
     val weather: List<WeatherItem>,
