@@ -63,6 +63,8 @@ dependencies {
     implementation("com.github.bumptech.glide:glide:4.16.0")
     implementation("com.github.bumptech.glide:compose:1.0.0-beta01")
 
+    implementation("androidx.navigation:navigation-compose:2.8.8")
+
     implementation("androidx.work:work-runtime-ktx:2.7.1")
 
     implementation("androidx.room:room-runtime:2.5.2")
