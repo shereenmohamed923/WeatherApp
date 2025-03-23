@@ -28,6 +28,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -37,17 +38,28 @@ import com.example.weatherapp.alert.AlertScreen
 import com.example.weatherapp.data.model.Coordinate
 import com.example.weatherapp.data.remote.RemoteDataSourceImpl
 import com.example.weatherapp.data.remote.RetrofitHelper
+import com.example.weatherapp.data.repo.SettingRepositoryImpl
 import com.example.weatherapp.data.repo.WeatherRepositoryImpl
 import com.example.weatherapp.favourite.FavouriteScreen
 import com.example.weatherapp.home.HomeScreen
 import com.example.weatherapp.home.HomeViewModel
+import com.example.weatherapp.setting.SettingFactory
 import com.example.weatherapp.setting.SettingScreen
+import com.example.weatherapp.setting.SettingViewModel
 import com.example.weatherapp.utility.DataResponse
 
 class MainActivity : ComponentActivity() {
     @SuppressLint("SuspiciousIndentation")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        val settingsRepository = SettingRepositoryImpl(this)
+        val settingsViewModel = ViewModelProvider(this, SettingFactory(settingsRepository))
+            .get(SettingViewModel::class.java)
+        val languageCode = settingsViewModel.getSavedLanguage()
+        settingsViewModel.setLanguage(this, languageCode)
+
+
         enableEdgeToEdge()
         val repo = WeatherRepositoryImpl.getInstance(
             RemoteDataSourceImpl(RetrofitHelper.service)
@@ -83,7 +95,7 @@ class MainActivity : ComponentActivity() {
                                     )
                                 )
                         )
-                        NavHostContainer(navController = navController, padding = padding)
+                        NavHostContainer(navController = navController, padding = padding, settingsViewModel)
                     }
                 }
             )
@@ -127,7 +139,8 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun NavHostContainer(
     navController: NavHostController,
-    padding: PaddingValues
+    padding: PaddingValues,
+    settingsViewModel: SettingViewModel
 ) {
     NavHost(
         navController = navController,
@@ -145,7 +158,7 @@ fun NavHostContainer(
                 AlertScreen()
             }
             composable("setting") {
-                SettingScreen()
+                SettingScreen(settingsViewModel)
             }
         })
 }
