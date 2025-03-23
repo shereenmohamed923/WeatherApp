@@ -1,13 +1,12 @@
 package com.example.weatherapp.data.repo
 
-import com.example.weatherapp.data.model.Coordinate
+import com.example.weatherapp.data.model.Coord
 import com.example.weatherapp.data.model.CurrentWeatherResponse
-import com.example.weatherapp.data.model.WeatherForecastResponse
+import com.example.weatherapp.data.model.ForecastResponse
 import kotlinx.coroutines.flow.Flow
-import retrofit2.Response
 
 interface WeatherRepository {
-    suspend fun getCurrentWeather(coordinate: Coordinate, isOnline: Boolean): Flow<CurrentWeatherResponse>
-    suspend fun getForecastWeather(coordinate: Coordinate, isOnline: Boolean): Flow<WeatherForecastResponse>
+    suspend fun getCurrentWeather(coord: Coord, isOnline: Boolean): Flow<CurrentWeatherResponse>
+    suspend fun getForecastWeather(coord: Coord, isOnline: Boolean): Flow<ForecastResponse>
 
 }

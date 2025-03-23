@@ -1,19 +1,18 @@
 package com.example.weatherapp.data.repo
 
-import com.example.weatherapp.data.model.Coordinate
+import com.example.weatherapp.data.model.Coord
 import com.example.weatherapp.data.model.CurrentWeatherResponse
-import com.example.weatherapp.data.model.WeatherForecastResponse
+import com.example.weatherapp.data.model.ForecastResponse
 import com.example.weatherapp.data.remote.RemoteDataSource
 import kotlinx.coroutines.flow.Flow
-import retrofit2.Response
 
 class WeatherRepositoryImpl private constructor(
     private val remoteDataSource: RemoteDataSource,
 //    private val localDataSource: LocalDataSource
 ): WeatherRepository {
 
-    override suspend fun getCurrentWeather(coordinate: Coordinate,isOnline: Boolean): Flow<CurrentWeatherResponse> {
-        return remoteDataSource.getCurrentWeather(coordinate)
+    override suspend fun getCurrentWeather(coord: Coord, isOnline: Boolean): Flow<CurrentWeatherResponse> {
+        return remoteDataSource.getCurrentWeather(coord)
     //        return if(isOnline) {
 //            remoteDataSource.getCurrentWeather()
 //        }
@@ -22,8 +21,8 @@ class WeatherRepositoryImpl private constructor(
 //        }
     }
 
-    override suspend fun getForecastWeather(coordinate: Coordinate, isOnline: Boolean): Flow<WeatherForecastResponse> {
-        return remoteDataSource.getForecastWeather(coordinate)
+    override suspend fun getForecastWeather(coord: Coord, isOnline: Boolean): Flow<ForecastResponse> {
+        return remoteDataSource.getForecastWeather(coord)
     }
 
     companion object{

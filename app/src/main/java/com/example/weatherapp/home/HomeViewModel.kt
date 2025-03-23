@@ -3,7 +3,7 @@ package com.example.weatherapp.home
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import com.example.weatherapp.data.model.Coordinate
+import com.example.weatherapp.data.model.Coord
 import com.example.weatherapp.data.repo.WeatherRepository
 import com.example.weatherapp.utility.DataResponse
 import kotlinx.coroutines.Dispatchers
@@ -29,10 +29,10 @@ class HomeViewModel(private val repository: WeatherRepository): ViewModel() {
 //        getForecastData(Coordinate(30.6118656, 32.2895872), true)
 //    }
 
-    fun getWeatherData(coordinate: Coordinate, isOnline: Boolean){
+    fun getWeatherData(coord: Coord, isOnline: Boolean){
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                val data = repository.getCurrentWeather(coordinate, isOnline)
+                val data = repository.getCurrentWeather(coord, isOnline)
                 data.catch {
                     ex -> _weatherData.value = DataResponse.Failure(ex)
                     _toastEvent.emit("Couldn't fetch data ${ex.message}")
@@ -46,10 +46,10 @@ class HomeViewModel(private val repository: WeatherRepository): ViewModel() {
             }
         }
     }
-    fun getForecastData(coordinate: Coordinate, isOnline: Boolean){
+    fun getForecastData(coord: Coord, isOnline: Boolean){
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                val data = repository.getForecastWeather(coordinate, isOnline)
+                val data = repository.getForecastWeather(coord, isOnline)
                 data.catch {
                         ex -> _forecastData.value = DataResponse.Failure(ex)
                     _toastEvent.emit("Couldn't fetch data ${ex.message}")

@@ -1,7 +1,7 @@
 package com.example.weatherapp.data.remote
 
 import com.example.weatherapp.data.model.CurrentWeatherResponse
-import com.example.weatherapp.data.model.WeatherForecastResponse
+import com.example.weatherapp.data.model.ForecastResponse
 import retrofit2.Response
 import retrofit2.http.GET
 import retrofit2.http.Query
@@ -17,5 +17,5 @@ interface ApiService{
     suspend fun getForecastWeather(@Query("lat") lat:Double = 30.6118656,
                                   @Query("lon") lon:Double = 32.2895872,
                                   @Query("appid") appid:String = "451666318959ca261cd48d55ee0dcf30",
-    ): Response<WeatherForecastResponse>
+    ): Response<ForecastResponse>
 }

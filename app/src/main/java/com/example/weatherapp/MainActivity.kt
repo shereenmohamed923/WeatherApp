@@ -35,7 +35,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.weatherapp.alert.AlertScreen
-import com.example.weatherapp.data.model.Coordinate
+import com.example.weatherapp.data.model.Coord
 import com.example.weatherapp.data.remote.RemoteDataSourceImpl
 import com.example.weatherapp.data.remote.RetrofitHelper
 import com.example.weatherapp.data.repo.SettingRepositoryImpl
@@ -99,7 +99,7 @@ class MainActivity : ComponentActivity() {
                     }
                 }
             )
-            viewModel.getWeatherData(Coordinate(30.6118656, 32.2895872), true)
+            viewModel.getWeatherData(Coord(30.6118656, 32.2895872), true)
             val dataState = viewModel.weatherData.collectAsState()
                 when (val response = dataState.value) {
                     is DataResponse.Loading -> {
@@ -115,7 +115,7 @@ class MainActivity : ComponentActivity() {
                     }
                 }
 
-            viewModel.getForecastData(Coordinate(30.6118656, 32.2895872), true)
+            viewModel.getForecastData(Coord(30.6118656, 32.2895872), true)
             val forecastState = viewModel.forecastData.collectAsState()
             when (val response = forecastState.value) {
                 is DataResponse.Loading -> {

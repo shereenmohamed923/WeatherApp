@@ -1,10 +1,12 @@
 package com.example.weatherapp.data.model
 
 data class CurrentWeatherResponse (
-    val coord: Coordinate,
+    val id: Int, //city ID
+    val coord: Coord,
     val main: Main,
     val clouds: Clouds,
-    val weather: List<WeatherItem>,
+    val weather: List<Weather>,
     val name: String,
-    val wind: Wind
+    val wind: Wind,
+    val sys: Sys
 )

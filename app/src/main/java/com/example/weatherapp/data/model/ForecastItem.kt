@@ -1,8 +1,9 @@
 package com.example.weatherapp.data.model
 
-data class ListItem (
+data class ForecastItem (
+    val dt: Long,
     val dt_txt: String,
-    val weather: List<WeatherItem>,
+    val weather: List<Weather>,
     val main: Main,
     val clouds: Clouds,
     val wind: Wind
