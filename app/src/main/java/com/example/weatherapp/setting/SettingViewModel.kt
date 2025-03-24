@@ -30,6 +30,14 @@ class SettingViewModel(private val repository: SettingRepository): ViewModel() {
     fun getSavedLanguage(): String {
         return repository.getSavedLanguage()
     }
+
+    fun convertTemperature(temp: Double, unit: String): Double{
+        return when(unit){
+            "Celsius" -> temp - 273.15
+            "Fahrenheit" -> (temp - 273.15) * 9 / 5 + 32
+            else -> temp
+        }
+    }
 }
 
 class SettingFactory(private val repo: SettingRepository): ViewModelProvider.Factory{

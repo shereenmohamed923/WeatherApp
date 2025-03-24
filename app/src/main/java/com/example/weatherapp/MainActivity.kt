@@ -36,6 +36,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.weatherapp.alert.AlertScreen
 import com.example.weatherapp.data.model.Coord
+import com.example.weatherapp.data.model.CurrentWeatherResponse
 import com.example.weatherapp.data.remote.RemoteDataSourceImpl
 import com.example.weatherapp.data.remote.RetrofitHelper
 import com.example.weatherapp.data.repo.SettingRepositoryImpl
@@ -56,8 +57,12 @@ class MainActivity : ComponentActivity() {
         val settingsRepository = SettingRepositoryImpl(this)
         val settingsViewModel = ViewModelProvider(this, SettingFactory(settingsRepository))
             .get(SettingViewModel::class.java)
+
         val languageCode = settingsViewModel.getSavedLanguage()
         settingsViewModel.setLanguage(this, languageCode)
+
+        val selectedUnit = settingsRepository.getTemperatureUnit()
+
 
 
         enableEdgeToEdge()
@@ -107,7 +112,13 @@ class MainActivity : ComponentActivity() {
                     }
 
                     is DataResponse.Success -> {
-                        Log.i("TAG", "current weather success: ${response.data}")
+                        if(response.data is CurrentWeatherResponse){
+                            val bCurr: Double = response.data.main.temp as Double
+                            val curr = settingsViewModel.convertTemperature(bCurr, selectedUnit)
+                            Log.i("TAG", "current weather succeeded: $curr")
+
+                        }
+
                     }
 
                     is DataResponse.Failure -> {
