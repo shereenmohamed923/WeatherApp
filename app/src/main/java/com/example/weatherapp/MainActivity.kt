@@ -42,6 +42,7 @@ import com.example.weatherapp.data.remote.RetrofitHelper
 import com.example.weatherapp.data.repo.SettingRepositoryImpl
 import com.example.weatherapp.data.repo.WeatherRepositoryImpl
 import com.example.weatherapp.favourite.FavouriteScreen
+import com.example.weatherapp.home.HomeFactory
 import com.example.weatherapp.home.HomeScreen
 import com.example.weatherapp.home.HomeViewModel
 import com.example.weatherapp.setting.SettingFactory
@@ -54,22 +55,37 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val settingsRepository = SettingRepositoryImpl(this)
-        val settingsViewModel = ViewModelProvider(this, SettingFactory(settingsRepository))
+
+        val settingsViewModel = ViewModelProvider(this, SettingFactory(
+            SettingRepositoryImpl.getInstance(this)))
             .get(SettingViewModel::class.java)
 
-        val languageCode = settingsViewModel.getSavedLanguage()
-        settingsViewModel.setLanguage(this, languageCode)
+        val homeViewModel = ViewModelProvider(this, HomeFactory(
+            WeatherRepositoryImpl.getInstance(RemoteDataSourceImpl(RetrofitHelper.service))))
+            .get(HomeViewModel::class.java)
 
-        val selectedUnit = settingsRepository.getTemperatureUnit()
+       // val settingsRepository = SettingRepositoryImpl(this)
+
+//        val settingsViewModel = ViewModelProvider(this, SettingFactory(settingsRepository))
+//            .get(SettingViewModel::class.java)
+
+        val languageCode = settingsViewModel.getSavedLanguage()
+        settingsViewModel.saveLanguage(languageCode)
+
+
+        //settingsViewModel.setLanguage(this, languageCode)
+//        val langHelper = LocalizationHelper(this)
+//        langHelper.setLanguage(languageCode)
+
+        val selectedUnit = settingsViewModel.getTemperatureUnit()
 
 
 
         enableEdgeToEdge()
-        val repo = WeatherRepositoryImpl.getInstance(
-            RemoteDataSourceImpl(RetrofitHelper.service)
-        )
-        val viewModel = HomeViewModel(repo)
+//        val repo = WeatherRepositoryImpl.getInstance(
+//            RemoteDataSourceImpl(RetrofitHelper.service)
+//        )
+//        val viewModel = HomeViewModel(repo)
 
         setContent {
             val navController = rememberNavController()
@@ -104,43 +120,44 @@ class MainActivity : ComponentActivity() {
                     }
                 }
             )
-            viewModel.getWeatherData(Coord(30.6118656, 32.2895872), true)
-            val dataState = viewModel.weatherData.collectAsState()
-                when (val response = dataState.value) {
-                    is DataResponse.Loading -> {
-                        Log.i("TAG", "current weather loading: ")
-                    }
+//            homeViewModel.getWeatherData(Coord(30.6118656, 32.2895872), true)
+//            val dataState = homeViewModel.weatherData.collectAsState()
+//                when (val response = dataState.value) {
+//                    is DataResponse.Loading -> {
+//                        Log.i("TAG", "current weather loading: ")
+//                    }
+//
+//                    is DataResponse.Success -> {
+//                        if(response.data is CurrentWeatherResponse){
+//                            val bCurr: Double = response.data.main.temp as Double
+//                            val curr = settingsViewModel.getTemperatureUnit()
+//                            //bCurr = curr
+//                            Log.i("TAG", "current weather succeeded: $curr")
+//
+//                        }
+//
+//                    }
+//
+//                    is DataResponse.Failure -> {
+//                        Log.d("TAG", "current weather error: ${response.error}")
+//                    }
+//                }
 
-                    is DataResponse.Success -> {
-                        if(response.data is CurrentWeatherResponse){
-                            val bCurr: Double = response.data.main.temp as Double
-                            val curr = settingsViewModel.convertTemperature(bCurr, selectedUnit)
-                            Log.i("TAG", "current weather succeeded: $curr")
-
-                        }
-
-                    }
-
-                    is DataResponse.Failure -> {
-                        Log.d("TAG", "current weather error: ${response.error}")
-                    }
-                }
-
-            viewModel.getForecastData(Coord(30.6118656, 32.2895872), true)
-            val forecastState = viewModel.forecastData.collectAsState()
-            when (val response = forecastState.value) {
-                is DataResponse.Loading -> {
-                    Log.i("TAG", "forecast loading: ")
-                }
-
-                is DataResponse.Success -> {
-                    Log.i("TAG", "forecast succeeded: ${response.data}")
-                }
-
-                is DataResponse.Failure -> {
-                    Log.d("TAG", "forecast error: ${response.error}")
-                }
-            }
+//            homeViewModel.getForecastData(Coord(30.6118656, 32.2895872), true)
+//            val forecastState = homeViewModel.forecastData.collectAsState()
+//            when (val response = forecastState.value) {
+//                is DataResponse.Loading -> {
+//                    Log.i("TAG", "forecast loading: ")
+//                }
+//
+//                is DataResponse.Success -> {
+//                    Log.i("TAG", "forecast succeeded: ${response.data}")
+//                }
+//
+//                is DataResponse.Failure -> {
+//                    Log.d("TAG", "forecast error: ${response.error}")
+//                }
+//            }
 
             }
         }

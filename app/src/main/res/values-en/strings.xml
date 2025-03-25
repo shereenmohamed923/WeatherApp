@@ -5,4 +5,9 @@
     <string name="favourite">Favourite screen</string>
     <string name="alert">Alert screen</string>
     <string name="setting">Setting screen</string>
+    <string name="settings">settings</string>
+    <string name="language">languages</string>
+    <string name="location">location</string>
+    <string name="temperature">temperature</string>
+    <string name="wind_speed">wind_speed</string>
 </resources>

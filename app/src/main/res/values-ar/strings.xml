@@ -5,4 +5,9 @@
     <string name="favourite">صفحة المفضلات</string>
     <string name="alert">صفحة الانذار</string>
     <string name="setting">صفحة الاعدادات</string>
+    <string name="settings">settings</string>
+    <string name="language">languages</string>
+    <string name="location">location</string>
+    <string name="temperature">temperature</string>
+    <string name="wind_speed">wind_speed</string>
 </resources>

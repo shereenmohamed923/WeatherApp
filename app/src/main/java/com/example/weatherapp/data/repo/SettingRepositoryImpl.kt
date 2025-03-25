@@ -2,7 +2,6 @@ package com.example.weatherapp.data.repo
 
 import android.content.Context
 
-
 class SettingRepositoryImpl(context: Context): SettingRepository {
 
     private val sharedPref = context.getSharedPreferences("Settings_prefs", Context.MODE_PRIVATE)
@@ -21,6 +20,17 @@ class SettingRepositoryImpl(context: Context): SettingRepository {
 
     override fun getTemperatureUnit(): String {
         return sharedPref.getString("temp_unit", "Kelvin") ?: "Kelvin"
+    }
+
+    companion object{
+        private var INSTANCE: SettingRepositoryImpl?= null
+        fun getInstance(context: Context): SettingRepository {
+            return INSTANCE ?: synchronized(this){
+                val temp = SettingRepositoryImpl(context)
+                INSTANCE =temp
+                temp
+            }
+        }
     }
 
 }
