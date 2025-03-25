@@ -8,8 +8,15 @@
     <string name="language">languages</string>
     <string name="location">location</string>
     <string name="temperature">temperature</string>
-    <string name="wind_speed">wind_speed</string>
+    <string name="wind_speed">wind speed</string>
     <string name="celsius">c°</string>
     <string name="fahrenheit">f°</string>
     <string name="kelvin">k°</string>
+    <string name="daily_forecast_header">Weekly Forecast</string>
+    <string name="hourly_forecast_header">Today\'s Forecast</string>
+    <string name="cloudiness">Cloudiness</string>
+    <string name="humidity">Humidity</string>
+    <string name="pressure">Pressure</string>
+    <string name="meter_per_sec">m/s</string>
+    <string name="mile_per_hour">m/h</string>
 </resources>

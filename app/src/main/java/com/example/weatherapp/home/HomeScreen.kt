@@ -41,6 +41,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -71,10 +72,6 @@ fun HomeScreen() {
         WeatherRepositoryImpl.getInstance(RemoteDataSourceImpl(RetrofitHelper.service)),
         SettingRepositoryImpl.getInstance(context)))
 
-    homeViewModel.getWeatherData(Coord(30.6118656, 32.2895872), true)
-    homeViewModel.getDailyForecastData(Coord(30.6118656, 32.2895872), true)
-    homeViewModel.getHourlyForecastData(Coord(30.6118656, 32.2895872), true)
-
     val currentWeatherState = homeViewModel.weatherData.collectAsState()
     val hourlyForecastState = homeViewModel.hourlyForecastData.collectAsState()
     val dailyForecastState = homeViewModel.dailyForecastData.collectAsState()
@@ -98,30 +95,31 @@ fun HomeScreen() {
                     val currentWeather = state.data
                     Text(
                         text = currentWeather.name,
-                        fontSize = 32.sp,
+                        fontSize = 24.sp,
                         color = Color.White,
                         fontWeight = FontWeight.Bold
                     )
                     Text(
                         text = currentWeather.weather[0].description,
-                        fontSize = 20.sp,
+                        fontSize = 16.sp,
                         color = Color.White
                     )
                     Spacer(Modifier.height(8.dp))
                     Image(
                         painter = painterResource(id = R.drawable.cloudy_weather),
                         contentDescription = "Weather Icon",
-                        modifier = Modifier.size(250.dp),
+                        modifier = Modifier.width(294.dp).height(141.dp),
                         contentScale = ContentScale.Fit
                     )
-                    Text(text = currentWeather.main.temp.toInt().toString()+"°",
-                        fontSize = 48.sp,
+                    val (convertedTemp, unitSymbol) = UnitHelper().convertTemperature(currentWeather.main.temp, temperatureUnit, context)
+                    Text(text = "$convertedTemp $unitSymbol",
+                        fontSize = 64.sp,
                         color = Color.White,
                         fontWeight = FontWeight.Bold
                     )
                     Text(
                         text = getCurrentDateTime(),
-                        fontSize = 14.sp,
+                        fontSize = 16.sp,
                         color = Color.White.copy(alpha = 0.7f)
                     )
                     Spacer(Modifier.height(16.dp))
@@ -132,7 +130,7 @@ fun HomeScreen() {
                         is  DataResponse.Success -> {
                             if(hourlyForecastWeatherState.data is ForecastResponse){
                                 val forecastWeather = hourlyForecastWeatherState.data
-                                HourlyForecast(forecastWeather.list)
+                                HourlyForecast(forecastWeather.list, temperatureUnit)
                             }
                         }
                         is DataResponse.Failure -> {
@@ -190,23 +188,23 @@ fun WeatherDetails(currentWeather: CurrentWeatherResponse) {
     ) {
         WeatherDetailItem(
             value = convertPressureToPercentage(currentWeather.main.pressure),
-            label = "Pressure",
+            label = stringResource(R.string.pressure),
             image = R.drawable.pressure
         )
         WeatherDetailItem(
             value = currentWeather.main.humidity.toString()+"%",
-            label = "Humidity",
+            label = stringResource(R.string.humidity),
             image = R.drawable.humidity
         )
         WeatherDetailItem(
-            value = currentWeather.wind.speed.toString()+"m/s",
-            "Wind Speed",
-            image = R.drawable.wind_speed
+            value = currentWeather.wind.speed.toString()+" "+ stringResource(R.string.meter_per_sec),
+            label = stringResource(R.string.wind_speed),
+            image = R.drawable.wind
         )
         WeatherDetailItem(
             value = currentWeather.clouds.all.toString()+"%",
-            label = "Cloudiness",
-            image = R.drawable.cloud
+            label = stringResource(R.string.cloudiness),
+            image = R.drawable.cloudiness
         )
     }
 }
@@ -219,9 +217,7 @@ fun WeatherDetailItem(value: String, label: String, image:Int) {
         Image(
             painter = painterResource(id = image),
             contentDescription = "Icon",
-            modifier =
-            if(image == R.drawable.cloud)   Modifier.size(40.dp)
-            else    Modifier.size(25.dp),
+            modifier = Modifier.size(25.dp),
             contentScale = ContentScale.FillBounds
         )
         Spacer(Modifier.height(8.dp))
@@ -232,13 +228,21 @@ fun WeatherDetailItem(value: String, label: String, image:Int) {
 }
 
 @Composable
-fun HourlyForecast(forecast: List<ForecastItem>) {
-    Text("Today", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color.White)
-    LazyRow(modifier = Modifier.fillMaxWidth()) {
-        items(forecast) { item ->
-            HourlyForecastItem(item.dt_txt, item.main.temp.toInt().toString(), R.drawable.cloudy_weather)
+fun HourlyForecast(forecast: List<ForecastItem>, temperatureUnit: String) {
+    val context:Context = LocalContext.current
+    Column(
+        horizontalAlignment = Alignment.Start
+    ) {
+        Text(stringResource(R.string.hourly_forecast_header), fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color.White, modifier = Modifier.padding(horizontal = 12.dp))
+        Spacer(Modifier.height(8.dp))
+        LazyRow(modifier = Modifier.fillMaxWidth()) {
+            items(forecast) { item ->
+                val (convertedTemp, unitSymbol) = UnitHelper().convertTemperature(item.main.temp, temperatureUnit, context)
+                HourlyForecastItem(item.dt_txt, "$convertedTemp $unitSymbol", R.drawable.cloudy_weather)
+            }
         }
     }
+
 }
 
 @Composable
@@ -302,11 +306,16 @@ fun HourlyForecastItem(time: String, temperature: String, iconRes: Int) {
 @Composable
 fun DailyForecast(forecast: List<ForecastItem>, temperatureUnit: String) {
     val context:Context = LocalContext.current
-    Text("7-Day Forecast", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color.White)
-    LazyRow(modifier = Modifier.fillMaxWidth()) {
-        items(forecast) { item ->
-            val (convertedTemp, unitSymbol) = UnitHelper().convertTemperature(item.main.temp, temperatureUnit, context)
-            DailyForecastItem(item.dt_txt, "$convertedTemp $unitSymbol", item.weather[0].description, R.drawable.cloudy_weather)
+    Column(
+        horizontalAlignment = Alignment.Start,
+    ) {
+        Text(stringResource(R.string.daily_forecast_header), fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color.White, modifier = Modifier.padding(horizontal = 12.dp))
+        Spacer(Modifier.height(8.dp))
+        LazyRow(modifier = Modifier.fillMaxWidth()) {
+            items(forecast) { item ->
+                val (convertedTemp, unitSymbol) = UnitHelper().convertTemperature(item.main.temp, temperatureUnit, context)
+                DailyForecastItem(item.dt_txt, "$convertedTemp $unitSymbol", item.weather[0].description, R.drawable.cloudy_weather)
+            }
         }
     }
 }
@@ -402,7 +411,7 @@ fun formatHourlyTime(dateTimeString: String): String {
     val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
     val dateTime = LocalDateTime.parse(dateTimeString, formatter)
 
-    val outputFormatter = DateTimeFormatter.ofPattern("h a") // "3 AM" or "3 PM"
+    val outputFormatter = DateTimeFormatter.ofPattern("h a")
     return dateTime.format(outputFormatter)
 }
 
@@ -411,5 +420,5 @@ fun formatDailyTime(dateTimeString: String): String {
     val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
     val date = LocalDate.parse(dateTimeString, formatter)
 
-    return date.dayOfWeek.toString() // "Tuesday"
+    return date.dayOfWeek.toString()
 }

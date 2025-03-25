@@ -44,7 +44,7 @@ class HomeViewModel(
         viewModelScope.launch {
             settingRepository.unitFlow.collectLatest { unit ->
                 _temperatureUnit.value = unit
-                refreshWeatherData()  // Refresh UI when unit changes
+                refreshWeatherData()
             }
         }
     }

@@ -13,4 +13,11 @@
     <string name="celsius">س°</string>
     <string name="fahrenheit">ف°</string>
     <string name="kelvin">ك°</string>
+    <string name="daily_forecast_header">توقعات الطقس الاسبوعية</string>
+    <string name="hourly_forecast_header">توقعات الطقس لليوم</string>
+    <string name="cloudiness">الغيوم</string>
+    <string name="humidity">الرطوبة</string>
+    <string name="pressure">ضغط الجو</string>
+    <string name="meter_per_sec">م/س</string>
+    <string name="mile_per_hour">م/س</string>
 </resources>
