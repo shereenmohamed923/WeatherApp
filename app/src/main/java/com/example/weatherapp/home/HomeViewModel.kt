@@ -8,6 +8,7 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.weatherapp.data.model.Coord
 import com.example.weatherapp.data.model.ForecastItem
+import com.example.weatherapp.data.repo.SettingRepository
 import com.example.weatherapp.data.repo.WeatherRepository
 import com.example.weatherapp.utility.DataResponse
 import kotlinx.coroutines.Dispatchers
@@ -16,9 +17,14 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
-class HomeViewModel(private val repository: WeatherRepository): ViewModel() {
+@RequiresApi(Build.VERSION_CODES.O)
+class HomeViewModel(
+    private val repository: WeatherRepository,
+    private val settingRepository: SettingRepository
+    ): ViewModel() {
     private val _weatherData = MutableStateFlow<DataResponse>(DataResponse.Loading)
     val weatherData = _weatherData.asStateFlow()
 
@@ -28,13 +34,21 @@ class HomeViewModel(private val repository: WeatherRepository): ViewModel() {
     private val _hourlyForecastData = MutableStateFlow<DataResponse>(DataResponse.Loading)
     val hourlyForecastData = _hourlyForecastData.asStateFlow()
 
+    private val _temperatureUnit = MutableStateFlow(settingRepository.getSavedUnit())
+    val temperatureUnit = _temperatureUnit.asStateFlow()
+
     private val _toastEvent = MutableSharedFlow<String>()
     val toastEvent = _toastEvent.asSharedFlow()
 
-//    init {
-//        getWeatherData(Coordinate(30.6118656, 32.2895872), true)
-//        getForecastData(Coordinate(30.6118656, 32.2895872), true)
-//    }
+    init {
+        viewModelScope.launch {
+            settingRepository.unitFlow.collectLatest { unit ->
+                _temperatureUnit.value = unit
+                refreshWeatherData()  // Refresh UI when unit changes
+            }
+        }
+    }
+
 
     fun getWeatherData(coord: Coord, isOnline: Boolean){
         viewModelScope.launch(Dispatchers.IO) {
@@ -105,6 +119,7 @@ class HomeViewModel(private val repository: WeatherRepository): ViewModel() {
                             ForecastItem(
                                 dt_txt = formatDailyTime(date), // Keep only the date
                                 main = items.first().main.copy(temp = avgTemp), // Use avgTemp
+                                weather = items.first().weather
                             )
                         }
 
@@ -124,10 +139,17 @@ class HomeViewModel(private val repository: WeatherRepository): ViewModel() {
             }
         }
     }
+    @RequiresApi(Build.VERSION_CODES.O)
+    fun refreshWeatherData() {
+        getWeatherData(Coord(30.6118656, 32.2895872), true)
+        getDailyForecastData(Coord(30.6118656, 32.2895872), true)
+        getHourlyForecastData(Coord(30.6118656, 32.2895872), true)
+    }
 }
 
-class HomeFactory(private val repo: WeatherRepository): ViewModelProvider.Factory{
+class HomeFactory(private val homeRepo: WeatherRepository, private val settingRepo: SettingRepository): ViewModelProvider.Factory{
+    @RequiresApi(Build.VERSION_CODES.O)
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        return HomeViewModel(repo) as T
+        return HomeViewModel(homeRepo, settingRepo) as T
     }
 }

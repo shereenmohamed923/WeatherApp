@@ -2,7 +2,9 @@ package com.example.weatherapp.setting
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import com.example.weatherapp.R
 import com.example.weatherapp.data.repo.SettingRepository
+import kotlinx.coroutines.flow.Flow
 
 class SettingViewModel(private val repository: SettingRepository): ViewModel() {
 
@@ -14,20 +16,12 @@ class SettingViewModel(private val repository: SettingRepository): ViewModel() {
         repository.saveLanguage(languageCode)
     }
 
-    fun convertTemperature(temp: Double, unit: String): Double{
-        return when(unit){
-            "Celsius" -> temp - 273.15
-            "Fahrenheit" -> (temp - 273.15) * 9 / 5 + 32
-            else -> temp
-        }
-    }
-
-    fun saveTemperatureUnit(unit: String){
-        repository.saveTemperatureUnit(unit)
+    fun setTemperatureUnit(unit: String){
+        repository.saveUnit(unit)
     }
 
     fun getTemperatureUnit(): String{
-        return repository.getTemperatureUnit()
+        return repository.getSavedUnit()
     }
 }
 

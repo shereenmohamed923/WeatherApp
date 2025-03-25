@@ -1,11 +1,13 @@
 package com.example.weatherapp
 
 import android.annotation.SuppressLint
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
@@ -51,6 +53,7 @@ import com.example.weatherapp.setting.SettingViewModel
 import com.example.weatherapp.utility.DataResponse
 
 class MainActivity : ComponentActivity() {
+    @RequiresApi(Build.VERSION_CODES.O)
     @SuppressLint("SuspiciousIndentation")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -59,15 +62,6 @@ class MainActivity : ComponentActivity() {
         val settingsViewModel = ViewModelProvider(this, SettingFactory(
             SettingRepositoryImpl.getInstance(this)))
             .get(SettingViewModel::class.java)
-
-        val homeViewModel = ViewModelProvider(this, HomeFactory(
-            WeatherRepositoryImpl.getInstance(RemoteDataSourceImpl(RetrofitHelper.service))))
-            .get(HomeViewModel::class.java)
-
-       // val settingsRepository = SettingRepositoryImpl(this)
-
-//        val settingsViewModel = ViewModelProvider(this, SettingFactory(settingsRepository))
-//            .get(SettingViewModel::class.java)
 
         val languageCode = settingsViewModel.getSavedLanguage()
         settingsViewModel.saveLanguage(languageCode)
@@ -79,13 +73,7 @@ class MainActivity : ComponentActivity() {
 
         val selectedUnit = settingsViewModel.getTemperatureUnit()
 
-
-
         enableEdgeToEdge()
-//        val repo = WeatherRepositoryImpl.getInstance(
-//            RemoteDataSourceImpl(RetrofitHelper.service)
-//        )
-//        val viewModel = HomeViewModel(repo)
 
         setContent {
             val navController = rememberNavController()
@@ -164,6 +152,7 @@ class MainActivity : ComponentActivity() {
 
     }
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun NavHostContainer(
     navController: NavHostController,

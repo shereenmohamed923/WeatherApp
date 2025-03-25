@@ -1,10 +1,13 @@
 package com.example.weatherapp.home
 
+import android.content.Context
 import android.os.Build
+import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -16,7 +19,11 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
@@ -24,11 +31,15 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -41,8 +52,10 @@ import com.example.weatherapp.data.model.ForecastItem
 import com.example.weatherapp.data.model.ForecastResponse
 import com.example.weatherapp.data.remote.RemoteDataSourceImpl
 import com.example.weatherapp.data.remote.RetrofitHelper
+import com.example.weatherapp.data.repo.SettingRepositoryImpl
 import com.example.weatherapp.data.repo.WeatherRepositoryImpl
 import com.example.weatherapp.utility.DataResponse
+import com.example.weatherapp.utility.UnitHelper
 import java.text.SimpleDateFormat
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -53,9 +66,11 @@ import java.util.Locale
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun HomeScreen() {
-    val factory = HomeFactory(
-        WeatherRepositoryImpl.getInstance(RemoteDataSourceImpl(RetrofitHelper.service)))
-    val homeViewModel: HomeViewModel = viewModel(factory = factory)
+    val context:Context = LocalContext.current
+    val homeViewModel: HomeViewModel = viewModel(factory = HomeFactory(
+        WeatherRepositoryImpl.getInstance(RemoteDataSourceImpl(RetrofitHelper.service)),
+        SettingRepositoryImpl.getInstance(context)))
+
     homeViewModel.getWeatherData(Coord(30.6118656, 32.2895872), true)
     homeViewModel.getDailyForecastData(Coord(30.6118656, 32.2895872), true)
     homeViewModel.getHourlyForecastData(Coord(30.6118656, 32.2895872), true)
@@ -63,11 +78,14 @@ fun HomeScreen() {
     val currentWeatherState = homeViewModel.weatherData.collectAsState()
     val hourlyForecastState = homeViewModel.hourlyForecastData.collectAsState()
     val dailyForecastState = homeViewModel.dailyForecastData.collectAsState()
+    val temperatureUnit by homeViewModel.temperatureUnit.collectAsState()
     val snackBarHostState = remember { SnackbarHostState() }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp),
+            .padding(8.dp)
+            .verticalScroll(rememberScrollState()),
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
@@ -96,7 +114,7 @@ fun HomeScreen() {
                         modifier = Modifier.size(250.dp),
                         contentScale = ContentScale.Fit
                     )
-                    Text(text = currentWeather.main.temp.toInt().toString(),
+                    Text(text = currentWeather.main.temp.toInt().toString()+"°",
                         fontSize = 48.sp,
                         color = Color.White,
                         fontWeight = FontWeight.Bold
@@ -133,7 +151,7 @@ fun HomeScreen() {
                         is  DataResponse.Success -> {
                             if(dailyForecastWeatherState.data is ForecastResponse){
                                 val forecastWeather = dailyForecastWeatherState.data
-                                DailyForecast(forecastWeather.list)
+                                DailyForecast(forecastWeather.list, temperatureUnit)
                             }
                         }
                         is DataResponse.Failure -> {
@@ -218,39 +236,156 @@ fun HourlyForecast(forecast: List<ForecastItem>) {
     Text("Today", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color.White)
     LazyRow(modifier = Modifier.fillMaxWidth()) {
         items(forecast) { item ->
-            HourlyForecastItem(item.dt_txt, item.main.temp.toInt().toString())
+            HourlyForecastItem(item.dt_txt, item.main.temp.toInt().toString(), R.drawable.cloudy_weather)
         }
     }
 }
 
 @Composable
-fun HourlyForecastItem(time: String, temp: String) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.padding(8.dp)) {
-        Text(time, fontSize = 14.sp, color = Color.White.copy(alpha = 0.7f))
-        Spacer(Modifier.height(4.dp))
-        Text(temp, fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Color.White)
+fun HourlyForecastItem(time: String, temperature: String, iconRes: Int) {
+    Card(
+        modifier = Modifier
+            .width(80.dp)
+            .height(120.dp)
+            .clip(RoundedCornerShape(16.dp))
+            .padding(4.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = Color.Transparent
+        ),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(
+                    brush = Brush.verticalGradient(
+                        colors = listOf(
+                            Color(0xFF957DCD),
+                            Color(0xFF523D7F)
+                        )
+                    ),
+                    shape = RoundedCornerShape(16.dp)
+                )
+                .padding(horizontal = 12.dp, vertical = 8.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.SpaceEvenly,
+                modifier = Modifier.fillMaxSize()
+            ) {
+                Text(
+                    text = time,
+                    fontSize = 14.sp,
+                    color = Color.White,
+                    fontWeight = FontWeight.Bold
+                )
+
+                Image(
+                    painter = painterResource(id = iconRes),
+                    contentDescription = "Weather Icon",
+                    modifier = Modifier.size(40.dp)
+                )
+
+                Text(
+                    text = "$temperature°",
+                    fontSize = 18.sp,
+                    color = Color.White,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+        }
     }
 }
 
+
 @Composable
-fun DailyForecast(forecast: List<ForecastItem>) {
+fun DailyForecast(forecast: List<ForecastItem>, temperatureUnit: String) {
+    val context:Context = LocalContext.current
     Text("7-Day Forecast", fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color.White)
     LazyRow(modifier = Modifier.fillMaxWidth()) {
         items(forecast) { item ->
-            DailyForecastItem(item.dt_txt, item.main.temp.toInt().toString())
+            val (convertedTemp, unitSymbol) = UnitHelper().convertTemperature(item.main.temp, temperatureUnit, context)
+            DailyForecastItem(item.dt_txt, "$convertedTemp $unitSymbol", item.weather[0].description, R.drawable.cloudy_weather)
         }
     }
 }
 
 @Composable
-fun DailyForecastItem(day: String, temp: String) {
-    Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.padding(8.dp)) {
-        Text(day, fontSize = 16.sp, color = Color.White)
-        Text(temp, fontSize = 16.sp, fontWeight = FontWeight.Bold, color = Color.White)
+fun DailyForecastItem(
+    date: String,
+    temperature: String,
+    weatherCondition: String,
+    iconRes: Int
+) {
+    Card(
+        modifier = Modifier
+            .width(180.dp)
+            .height(80.dp)
+            .clip(RoundedCornerShape(12.dp))
+            .padding(4.dp),
+        colors = CardDefaults.cardColors(containerColor = Color.Transparent),
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+    ) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(
+                    brush = Brush.verticalGradient(
+                        colors = listOf(
+                            Color(0xFF957DCD),
+                            Color(0xFF523D7F)
+                        )
+                    ),
+                    shape = RoundedCornerShape(12.dp)
+                )
+                .padding(horizontal = 12.dp, vertical = 8.dp),
+            contentAlignment = Alignment.Center
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Image(
+                        painter = painterResource(id = iconRes),
+                        contentDescription = "Weather Icon",
+                        modifier = Modifier.size(24.dp)
+                    )
+
+                    Spacer(modifier = Modifier.width(6.dp))
+
+                    Column (
+                        verticalArrangement = Arrangement.SpaceBetween
+                    ){
+                        Text(
+                            text = date,
+                            fontSize = 12.sp,
+                            color = Color.White,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Text(
+                            text = weatherCondition,
+                            fontSize = 10.sp,
+                            color = Color.White,
+                            fontWeight = FontWeight.Medium
+                        )
+                    }
+                }
+
+                Text(
+                    text = temperature,
+                    fontSize = 14.sp,
+                    color = Color.White,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+        }
     }
 }
-
-
 
 //----------------------------helper functions should be removed to utilities--------------------------------
 

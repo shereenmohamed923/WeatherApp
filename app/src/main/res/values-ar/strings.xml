@@ -5,9 +5,12 @@
     <string name="favourite">صفحة المفضلات</string>
     <string name="alert">صفحة الانذار</string>
     <string name="setting">صفحة الاعدادات</string>
-    <string name="settings">settings</string>
-    <string name="language">languages</string>
-    <string name="location">location</string>
-    <string name="temperature">temperature</string>
-    <string name="wind_speed">wind_speed</string>
+    <string name="settings">الاعدادات</string>
+    <string name="language">اللغات</string>
+    <string name="location">الموقع</string>
+    <string name="temperature">درجة الحرارة</string>
+    <string name="wind_speed">سرعة الرياح</string>
+    <string name="celsius">س°</string>
+    <string name="fahrenheit">ف°</string>
+    <string name="kelvin">ك°</string>
 </resources>

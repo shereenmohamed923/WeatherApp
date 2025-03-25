@@ -10,4 +10,7 @@
     <string name="location">location</string>
     <string name="temperature">temperature</string>
     <string name="wind_speed">wind_speed</string>
+    <string name="celsius">c°</string>
+    <string name="fahrenheit">f°</string>
+    <string name="kelvin">k°</string>
 </resources>
