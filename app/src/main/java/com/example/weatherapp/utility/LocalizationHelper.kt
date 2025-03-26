@@ -10,7 +10,6 @@ import com.example.weatherapp.R
 
 class LocalizationHelper(private val context: Context) {
     fun setLanguage(languageCode: String): String {
-        //repository.saveLanguage(languageCode)
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             context.getSystemService(LocaleManager::class.java).applicationLocales =
                 LocaleList.forLanguageTags(languageCode)
@@ -19,14 +18,13 @@ class LocalizationHelper(private val context: Context) {
         }
         return languageCode
     }
-
 }
 class UnitHelper{
-    fun convertTemperature(temp: Double, unit: String, context: Context): Pair<String, String>{
+    fun convertTemperature(temp: Double, unit: String, context: Context): Pair<Int, String>{
         return when(unit){
-            "Celsius" -> Pair((temp - 273.15).toInt().toString(), context.getString(R.string.celsius))
-            "Fahrenheit" -> Pair(((temp - 273.15) * 9 / 5 + 32).toInt().toString(), context.getString(R.string.fahrenheit))//
-            else -> Pair(temp.toInt().toString(), context.getString(R.string.kelvin))//
+            "Celsius" -> Pair((temp - 273.15).toInt(), context.getString(R.string.celsius))
+            "Fahrenheit" -> Pair(((temp - 273.15) * 9 / 5 + 32).toInt(), context.getString(R.string.fahrenheit))
+            else -> Pair(temp.toInt(), context.getString(R.string.kelvin))
         }
     }
 }

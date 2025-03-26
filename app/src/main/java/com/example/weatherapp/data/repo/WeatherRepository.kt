@@ -6,7 +6,7 @@ import com.example.weatherapp.data.model.ForecastResponse
 import kotlinx.coroutines.flow.Flow
 
 interface WeatherRepository {
-    suspend fun getCurrentWeather(coord: Coord, isOnline: Boolean): Flow<CurrentWeatherResponse>
-    suspend fun getForecastWeather(coord: Coord, isOnline: Boolean): Flow<ForecastResponse>
+    suspend fun getCurrentWeather(coord: Coord, isOnline: Boolean, lang:String): Flow<CurrentWeatherResponse>
+    suspend fun getForecastWeather(coord: Coord, isOnline: Boolean, lang:String): Flow<ForecastResponse>
 
 }

@@ -1,6 +1,7 @@
 package com.example.weatherapp.home
 
 import android.content.Context
+import android.icu.text.DecimalFormatSymbols
 import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
@@ -57,6 +58,7 @@ import com.example.weatherapp.data.repo.SettingRepositoryImpl
 import com.example.weatherapp.data.repo.WeatherRepositoryImpl
 import com.example.weatherapp.utility.DataResponse
 import com.example.weatherapp.utility.UnitHelper
+import java.text.NumberFormat
 import java.text.SimpleDateFormat
 import java.time.LocalDate
 import java.time.LocalDateTime
@@ -67,10 +69,13 @@ import java.util.Locale
 @RequiresApi(Build.VERSION_CODES.O)
 @Composable
 fun HomeScreen() {
-    val context:Context = LocalContext.current
-    val homeViewModel: HomeViewModel = viewModel(factory = HomeFactory(
-        WeatherRepositoryImpl.getInstance(RemoteDataSourceImpl(RetrofitHelper.service)),
-        SettingRepositoryImpl.getInstance(context)))
+    val context: Context = LocalContext.current
+    val homeViewModel: HomeViewModel = viewModel(
+        factory = HomeFactory(
+            WeatherRepositoryImpl.getInstance(RemoteDataSourceImpl(RetrofitHelper.service)),
+            SettingRepositoryImpl.getInstance(context)
+        )
+    )
 
     val currentWeatherState = homeViewModel.weatherData.collectAsState()
     val hourlyForecastState = homeViewModel.hourlyForecastData.collectAsState()
@@ -90,8 +95,9 @@ fun HomeScreen() {
             is DataResponse.Loading -> {
                 CircularProgressIndicator()
             }
+
             is DataResponse.Success -> {
-                if(state.data is CurrentWeatherResponse){
+                if (state.data is CurrentWeatherResponse) {
                     val currentWeather = state.data
                     Text(
                         text = currentWeather.name,
@@ -108,11 +114,18 @@ fun HomeScreen() {
                     Image(
                         painter = painterResource(id = R.drawable.cloudy_weather),
                         contentDescription = "Weather Icon",
-                        modifier = Modifier.width(294.dp).height(141.dp),
+                        modifier = Modifier
+                            .width(294.dp)
+                            .height(141.dp),
                         contentScale = ContentScale.Fit
                     )
-                    val (convertedTemp, unitSymbol) = UnitHelper().convertTemperature(currentWeather.main.temp, temperatureUnit, context)
-                    Text(text = "$convertedTemp $unitSymbol",
+                    val (convertedTemp, unitSymbol) = UnitHelper().convertTemperature(
+                        currentWeather.main.temp,
+                        temperatureUnit,
+                        context
+                    )
+                    Text(
+                        text = "${formatNumber(convertedTemp.toInt())} $unitSymbol",
                         fontSize = 64.sp,
                         color = Color.White,
                         fontWeight = FontWeight.Bold
@@ -126,13 +139,14 @@ fun HomeScreen() {
                     WeatherDetails(currentWeather)
                     Spacer(Modifier.height(16.dp))
                     when (val hourlyForecastWeatherState = hourlyForecastState.value) {
-                        is DataResponse.Loading -> {    }
-                        is  DataResponse.Success -> {
-                            if(hourlyForecastWeatherState.data is ForecastResponse){
+                        is DataResponse.Loading -> {}
+                        is DataResponse.Success -> {
+                            if (hourlyForecastWeatherState.data is ForecastResponse) {
                                 val forecastWeather = hourlyForecastWeatherState.data
                                 HourlyForecast(forecastWeather.list, temperatureUnit)
                             }
                         }
+
                         is DataResponse.Failure -> {
                             val failed = hourlyForecastWeatherState.error
                             LaunchedEffect(failed) {
@@ -144,14 +158,15 @@ fun HomeScreen() {
                         }
                     }
                     Spacer(Modifier.height(16.dp))
-                    when(val dailyForecastWeatherState = dailyForecastState.value){
-                        is DataResponse.Loading -> {    }
-                        is  DataResponse.Success -> {
-                            if(dailyForecastWeatherState.data is ForecastResponse){
+                    when (val dailyForecastWeatherState = dailyForecastState.value) {
+                        is DataResponse.Loading -> {}
+                        is DataResponse.Success -> {
+                            if (dailyForecastWeatherState.data is ForecastResponse) {
                                 val forecastWeather = dailyForecastWeatherState.data
                                 DailyForecast(forecastWeather.list, temperatureUnit)
                             }
                         }
+
                         is DataResponse.Failure -> {
                             val failed = dailyForecastWeatherState.error
                             LaunchedEffect(failed) {
@@ -164,6 +179,7 @@ fun HomeScreen() {
                     }
                 }
             }
+
             is DataResponse.Failure -> {
                 val failed = state.error
                 LaunchedEffect(failed) {
@@ -187,22 +203,22 @@ fun WeatherDetails(currentWeather: CurrentWeatherResponse) {
         horizontalArrangement = Arrangement.SpaceEvenly
     ) {
         WeatherDetailItem(
-            value = convertPressureToPercentage(currentWeather.main.pressure),
+            value = formatNumber(convertPressureToPercentage(currentWeather.main.pressure))+ "%" ,
             label = stringResource(R.string.pressure),
             image = R.drawable.pressure
         )
         WeatherDetailItem(
-            value = currentWeather.main.humidity.toString()+"%",
+            value = formatNumber(currentWeather.main.humidity) + "%",
             label = stringResource(R.string.humidity),
             image = R.drawable.humidity
         )
         WeatherDetailItem(
-            value = currentWeather.wind.speed.toString()+" "+ stringResource(R.string.meter_per_sec),
+            value = formatNumber(currentWeather.wind.speed.toInt())  + " " + stringResource(R.string.meter_per_sec),
             label = stringResource(R.string.wind_speed),
             image = R.drawable.wind
         )
         WeatherDetailItem(
-            value = currentWeather.clouds.all.toString()+"%",
+            value = formatNumber(currentWeather.clouds.all) + "%",
             label = stringResource(R.string.cloudiness),
             image = R.drawable.cloudiness
         )
@@ -210,7 +226,7 @@ fun WeatherDetails(currentWeather: CurrentWeatherResponse) {
 }
 
 @Composable
-fun WeatherDetailItem(value: String, label: String, image:Int) {
+fun WeatherDetailItem(value: String, label: String, image: Int) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -229,16 +245,30 @@ fun WeatherDetailItem(value: String, label: String, image:Int) {
 
 @Composable
 fun HourlyForecast(forecast: List<ForecastItem>, temperatureUnit: String) {
-    val context:Context = LocalContext.current
+    val context: Context = LocalContext.current
     Column(
         horizontalAlignment = Alignment.Start
     ) {
-        Text(stringResource(R.string.hourly_forecast_header), fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color.White, modifier = Modifier.padding(horizontal = 12.dp))
+        Text(
+            stringResource(R.string.hourly_forecast_header),
+            fontSize = 18.sp,
+            fontWeight = FontWeight.Bold,
+            color = Color.White,
+            modifier = Modifier.padding(horizontal = 12.dp)
+        )
         Spacer(Modifier.height(8.dp))
         LazyRow(modifier = Modifier.fillMaxWidth()) {
             items(forecast) { item ->
-                val (convertedTemp, unitSymbol) = UnitHelper().convertTemperature(item.main.temp, temperatureUnit, context)
-                HourlyForecastItem(item.dt_txt, "$convertedTemp $unitSymbol", R.drawable.cloudy_weather)
+                val (convertedTemp, unitSymbol) = UnitHelper().convertTemperature(
+                    item.main.temp,
+                    temperatureUnit,
+                    context
+                )
+                HourlyForecastItem(
+                    time = item.dt_txt,
+                    temperature = "${formatNumber(convertedTemp)} $unitSymbol",
+                    iconRes = R.drawable.cloudy_weather
+                )
             }
         }
     }
@@ -292,7 +322,7 @@ fun HourlyForecastItem(time: String, temperature: String, iconRes: Int) {
                 )
 
                 Text(
-                    text = "$temperature°",
+                    text = temperature,
                     fontSize = 18.sp,
                     color = Color.White,
                     fontWeight = FontWeight.Bold
@@ -305,16 +335,31 @@ fun HourlyForecastItem(time: String, temperature: String, iconRes: Int) {
 
 @Composable
 fun DailyForecast(forecast: List<ForecastItem>, temperatureUnit: String) {
-    val context:Context = LocalContext.current
+    val context: Context = LocalContext.current
     Column(
         horizontalAlignment = Alignment.Start,
     ) {
-        Text(stringResource(R.string.daily_forecast_header), fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color.White, modifier = Modifier.padding(horizontal = 12.dp))
+        Text(
+            stringResource(R.string.daily_forecast_header),
+            fontSize = 18.sp,
+            fontWeight = FontWeight.Bold,
+            color = Color.White,
+            modifier = Modifier.padding(horizontal = 12.dp)
+        )
         Spacer(Modifier.height(8.dp))
         LazyRow(modifier = Modifier.fillMaxWidth()) {
             items(forecast) { item ->
-                val (convertedTemp, unitSymbol) = UnitHelper().convertTemperature(item.main.temp, temperatureUnit, context)
-                DailyForecastItem(item.dt_txt, "$convertedTemp $unitSymbol", item.weather[0].description, R.drawable.cloudy_weather)
+                val (convertedTemp, unitSymbol) = UnitHelper().convertTemperature(
+                    item.main.temp,
+                    temperatureUnit,
+                    context
+                )
+                DailyForecastItem(
+                    item.dt_txt,
+                    "${formatNumber(convertedTemp)} $unitSymbol",
+                    item.weather[0].description,
+                    R.drawable.cloudy_weather
+                )
             }
         }
     }
@@ -367,9 +412,9 @@ fun DailyForecastItem(
 
                     Spacer(modifier = Modifier.width(6.dp))
 
-                    Column (
+                    Column(
                         verticalArrangement = Arrangement.SpaceBetween
-                    ){
+                    ) {
                         Text(
                             text = date,
                             fontSize = 12.sp,
@@ -403,22 +448,37 @@ fun getCurrentDateTime(): String {
     val formatter = SimpleDateFormat("EEEE, dd MMMM yyyy | HH:mm", Locale.getDefault())
     return formatter.format(calendar.time)
 }
-fun convertPressureToPercentage(pressure: Int, minPressure: Int = 980, maxPressure: Int = 1050): String {
-    return ((pressure - minPressure).toFloat() / (maxPressure - minPressure) * 100).toInt().toString()+"%"
+
+fun convertPressureToPercentage(
+    pressure: Int,
+    minPressure: Int = 980,
+    maxPressure: Int = 1050
+): Int {
+    return ((pressure - minPressure).toFloat() / (maxPressure - minPressure) * 100).toInt()
 }
+
 @RequiresApi(Build.VERSION_CODES.O)
 fun formatHourlyTime(dateTimeString: String): String {
-    val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
+    val locale = Locale.getDefault()
+    val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss", locale)
     val dateTime = LocalDateTime.parse(dateTimeString, formatter)
 
-    val outputFormatter = DateTimeFormatter.ofPattern("h a")
+    val outputFormatter = DateTimeFormatter.ofPattern("h a", locale)
     return dateTime.format(outputFormatter)
 }
 
 @RequiresApi(Build.VERSION_CODES.O)
 fun formatDailyTime(dateTimeString: String): String {
-    val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
+    val locale = Locale.getDefault()
+    val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd", locale)
     val date = LocalDate.parse(dateTimeString, formatter)
 
-    return date.dayOfWeek.toString()
+    val outputFormatter =
+        DateTimeFormatter.ofPattern("EEEE", locale) // Full weekday name in the current locale
+    return date.format(outputFormatter)
+}
+
+fun formatNumber(value: Int): String {
+    val formatter = NumberFormat.getInstance(Locale.getDefault())
+    return formatter.format(value)
 }

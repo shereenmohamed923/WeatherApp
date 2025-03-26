@@ -49,11 +49,10 @@ class HomeViewModel(
         }
     }
 
-
-    fun getWeatherData(coord: Coord, isOnline: Boolean){
+    fun getWeatherData(coord: Coord, isOnline: Boolean, lang: String){
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                val data = repository.getCurrentWeather(coord, isOnline)
+                val data = repository.getCurrentWeather(coord, isOnline, lang)
                 data.catch {
                     ex -> _weatherData.value = DataResponse.Failure(ex)
                     _toastEvent.emit("Couldn't fetch data ${ex.message}")
@@ -68,70 +67,67 @@ class HomeViewModel(
             }
         }
     }
+
     @RequiresApi(Build.VERSION_CODES.O)
-    fun getHourlyForecastData(coord: Coord, isOnline: Boolean) {
+    fun getHourlyForecastData(coord: Coord, isOnline: Boolean, lang: String) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                repository.getForecastWeather(coord, isOnline)
+                repository.getForecastWeather(coord, isOnline, lang)
                     .catch { ex ->
                         _hourlyForecastData.value = DataResponse.Failure(ex)
                         _toastEvent.emit("Couldn't fetch data: ${ex.message}")
                     }
                     .collect { forecastResponse ->
-                        // Take only the first 8 items and format the time
                         val updatedList = forecastResponse.list
-                            .take(8) // Take only first 8 items
+                            .take(8)
                             .map { item ->
-                                item.copy(dt_txt = formatHourlyTime(item.dt_txt))
+                                val formattedTime = formatHourlyTime(item.dt_txt)
+
+                                val updatedTime = if (settingRepository.getSavedLanguage() == "ar") {
+                                    val num = formatNumber(formattedTime.split(" ")[0].toInt())
+                                    val period = if (formattedTime.split(" ")[1] == "AM") "ص" else "م"
+                                    "$num $period"
+                                } else {
+                                    formattedTime
+                                }
+                                item.copy(dt_txt = updatedTime)
                             }
-
-                        // Create a new ForecastResponse with ONLY the first 8 items
                         val updatedForecast = forecastResponse.copy(list = updatedList)
-
-                        // Emit only the modified response
                         _hourlyForecastData.value = DataResponse.Success(updatedForecast)
-
-                        Log.d("WeatherData", "Filtered Response: $updatedForecast")
                     }
+
             } catch (ex: Exception) {
                 _hourlyForecastData.value = DataResponse.Failure(ex)
                 _toastEvent.emit("An error occurred: ${ex.message}")
             }
         }
     }
+
     @RequiresApi(Build.VERSION_CODES.O)
-    fun getDailyForecastData(coord: Coord, isOnline: Boolean) {
+    fun getDailyForecastData(coord: Coord, isOnline: Boolean, lang: String) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                repository.getForecastWeather(coord, isOnline)
+                repository.getForecastWeather(coord, isOnline, lang)
                     .catch { ex ->
                         _dailyForecastData.value = DataResponse.Failure(ex)
                         _toastEvent.emit("Couldn't fetch data: ${ex.message}")
                     }
                     .collect { forecastResponse ->
-                        // Group by date (yyyy-MM-dd)
                         val groupedByDate = forecastResponse.list
-                            .groupBy { item -> item.dt_txt.substring(0, 10) } // Extract "yyyy-MM-dd"
+                            .groupBy { item -> item.dt_txt.substring(0, 10) }
 
-                        // Calculate average temperature for each day
                         val dailyAverages = groupedByDate.map { (date, items) ->
                             val avgTemp = items.map { it.main.temp }.average()
                             ForecastItem(
-                                dt_txt = formatDailyTime(date), // Keep only the date
-                                main = items.first().main.copy(temp = avgTemp), // Use avgTemp
+                                dt_txt = formatDailyTime(date),
+                                main = items.first().main.copy(temp = avgTemp),
                                 weather = items.first().weather
                             )
                         }
-
-                        // Take only the next 5 days
                         val fiveDayForecast = dailyAverages.drop(1).take(5)
 
                         val updatedForecast = forecastResponse.copy(list = fiveDayForecast)
-
-                        // Emit the processed data
                         _dailyForecastData.value = DataResponse.Success(updatedForecast)
-
-                        Log.d("WeatherData", "5-Day Forecast: $updatedForecast")
                     }
             } catch (ex: Exception) {
                 _dailyForecastData.value = DataResponse.Failure(ex)
@@ -139,11 +135,12 @@ class HomeViewModel(
             }
         }
     }
+
     @RequiresApi(Build.VERSION_CODES.O)
     fun refreshWeatherData() {
-        getWeatherData(Coord(30.6118656, 32.2895872), true)
-        getDailyForecastData(Coord(30.6118656, 32.2895872), true)
-        getHourlyForecastData(Coord(30.6118656, 32.2895872), true)
+        getWeatherData(Coord(30.6118656, 32.2895872), true, lang = settingRepository.getSavedLanguage())
+        getDailyForecastData(Coord(30.6118656, 32.2895872), true, lang = settingRepository.getSavedLanguage())
+        getHourlyForecastData(Coord(30.6118656, 32.2895872), true, lang = settingRepository.getSavedLanguage())
     }
 }
 

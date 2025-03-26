@@ -6,6 +6,6 @@ import com.example.weatherapp.data.model.ForecastResponse
 import kotlinx.coroutines.flow.Flow
 
 interface RemoteDataSource {
-    suspend fun getCurrentWeather(coord: Coord): Flow<CurrentWeatherResponse>
-    suspend fun getForecastWeather(coord: Coord): Flow<ForecastResponse>
+    suspend fun getCurrentWeather(coord: Coord, lang:String): Flow<CurrentWeatherResponse>
+    suspend fun getForecastWeather(coord: Coord, lang:String): Flow<ForecastResponse>
 }

@@ -11,8 +11,8 @@ class WeatherRepositoryImpl private constructor(
 //    private val localDataSource: LocalDataSource
 ): WeatherRepository {
 
-    override suspend fun getCurrentWeather(coord: Coord, isOnline: Boolean): Flow<CurrentWeatherResponse> {
-        return remoteDataSource.getCurrentWeather(coord)
+    override suspend fun getCurrentWeather(coord: Coord, isOnline: Boolean, lang:String): Flow<CurrentWeatherResponse> {
+        return remoteDataSource.getCurrentWeather(coord, lang)
     //        return if(isOnline) {
 //            remoteDataSource.getCurrentWeather()
 //        }
@@ -21,8 +21,8 @@ class WeatherRepositoryImpl private constructor(
 //        }
     }
 
-    override suspend fun getForecastWeather(coord: Coord, isOnline: Boolean): Flow<ForecastResponse> {
-        return remoteDataSource.getForecastWeather(coord)
+    override suspend fun getForecastWeather(coord: Coord, isOnline: Boolean, lang:String): Flow<ForecastResponse> {
+        return remoteDataSource.getForecastWeather(coord, lang)
     }
 
     companion object{
