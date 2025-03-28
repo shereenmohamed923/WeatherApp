@@ -4,7 +4,7 @@ import android.content.Context
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 
-class SettingRepositoryImpl(context: Context): SettingRepository {
+class SettingRepositoryImpl private constructor(context: Context): SettingRepository {
 
     private val sharedPref = context.getSharedPreferences("Settings_prefs", Context.MODE_PRIVATE)
 

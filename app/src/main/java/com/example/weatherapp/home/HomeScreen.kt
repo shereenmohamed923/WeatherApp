@@ -1,9 +1,14 @@
 package com.example.weatherapp.home
 
+import android.app.Activity
 import android.content.Context
+import android.content.Intent
 import android.icu.text.DecimalFormatSymbols
+import android.location.LocationManager
 import android.os.Build
+import android.provider.Settings
 import android.util.Log
+import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -46,7 +51,11 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat.getSystemService
+import androidx.core.content.ContextCompat.startActivity
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.weatherapp.My_LOCATION_PERMISSION_ID
 import com.example.weatherapp.R
 import com.example.weatherapp.data.model.Coord
 import com.example.weatherapp.data.model.CurrentWeatherResponse
@@ -54,10 +63,15 @@ import com.example.weatherapp.data.model.ForecastItem
 import com.example.weatherapp.data.model.ForecastResponse
 import com.example.weatherapp.data.remote.RemoteDataSourceImpl
 import com.example.weatherapp.data.remote.RetrofitHelper
+import com.example.weatherapp.data.repo.LocationRepositoryImpl
 import com.example.weatherapp.data.repo.SettingRepositoryImpl
 import com.example.weatherapp.data.repo.WeatherRepositoryImpl
+import com.example.weatherapp.location.LocationViewModel
 import com.example.weatherapp.utility.DataResponse
 import com.example.weatherapp.utility.UnitHelper
+import com.example.weatherapp.utility.checkPermissions
+import com.example.weatherapp.utility.getFreshLocation
+import com.example.weatherapp.utility.isLocationEnabled
 import java.text.NumberFormat
 import java.text.SimpleDateFormat
 import java.time.LocalDate
@@ -73,7 +87,8 @@ fun HomeScreen() {
     val homeViewModel: HomeViewModel = viewModel(
         factory = HomeFactory(
             WeatherRepositoryImpl.getInstance(RemoteDataSourceImpl(RetrofitHelper.service)),
-            SettingRepositoryImpl.getInstance(context)
+            SettingRepositoryImpl.getInstance(context),
+            LocationRepositoryImpl.getInstance(context)
         )
     )
 
@@ -82,6 +97,35 @@ fun HomeScreen() {
     val dailyForecastState = homeViewModel.dailyForecastData.collectAsState()
     val temperatureUnit by homeViewModel.temperatureUnit.collectAsState()
     val snackBarHostState = remember { SnackbarHostState() }
+
+    if (checkPermissions(context)) {
+        if (isLocationEnabled(context)) {
+            getFreshLocation()
+        } else {
+            val intent = Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS)
+            context.startActivity(intent)
+//            if(isLocationEnabled(context)){
+//                if(homeViewModel.getSavedLocation() != null){
+//
+//            }
+//                getFreshLocation()
+//            }else{
+//                Toast.makeText(context, "enable your location first", Toast.LENGTH_SHORT).show()
+//                Log.i("TAG", "HomeScreen: enable your location first")
+//            }
+//            if(homeViewModel.getSavedLocation() == null){
+//               
+//            }else{
+//                homeViewModel.getSavedLocation()
+//            }
+        }
+    } else {
+        ActivityCompat.requestPermissions(
+            context as Activity,
+            arrayOf(android.Manifest.permission.ACCESS_FINE_LOCATION, android.Manifest.permission.ACCESS_COARSE_LOCATION),
+            My_LOCATION_PERMISSION_ID
+        )
+    }
 
     Column(
         modifier = Modifier
@@ -125,7 +169,7 @@ fun HomeScreen() {
                         context
                     )
                     Text(
-                        text = "${formatNumber(convertedTemp.toInt())} $unitSymbol",
+                        text = "${formatNumber(convertedTemp)} $unitSymbol",
                         fontSize = 64.sp,
                         color = Color.White,
                         fontWeight = FontWeight.Bold
@@ -482,3 +526,4 @@ fun formatNumber(value: Int): String {
     val formatter = NumberFormat.getInstance(Locale.getDefault())
     return formatter.format(value)
 }
+
