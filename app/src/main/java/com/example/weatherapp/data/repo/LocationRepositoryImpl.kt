@@ -20,11 +20,10 @@ class LocationRepositoryImpl private constructor (context: Context): LocationRep
             .putFloat("lat", lat.toFloat())
             .putFloat("lon", lon.toFloat())
             .apply()
-        //_locationFlow.value = Coord(lat, lon)
         Log.i("TAG", "saveLocation: ${_locationFlow.value}")
     }
 
-    override fun getSavedLocation(): Coord {
+    override fun getSavedLocation(): Coord{
         val lat = sharedPref.getFloat("lat", 0f).toDouble()
         val lon = sharedPref.getFloat("lon", 0f).toDouble()
         return Coord(lat, lon)

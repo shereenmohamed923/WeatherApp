@@ -61,6 +61,7 @@ import com.example.weatherapp.home.HomeScreen
 import com.example.weatherapp.home.HomeViewModel
 import com.example.weatherapp.location.LocationFactory
 import com.example.weatherapp.location.LocationViewModel
+import com.example.weatherapp.location.MapScreen
 import com.example.weatherapp.setting.SettingFactory
 import com.example.weatherapp.setting.SettingScreen
 import com.example.weatherapp.setting.SettingViewModel
@@ -78,7 +79,8 @@ class MainActivity : ComponentActivity() {
     val settingsViewModel by lazy {
         ViewModelProvider(
             this, SettingFactory(
-                SettingRepositoryImpl.getInstance(this)
+                SettingRepositoryImpl.getInstance(this),
+                LocationRepositoryImpl.getInstance(this)
             )
         ).get(SettingViewModel::class.java)
     }
@@ -91,16 +93,21 @@ class MainActivity : ComponentActivity() {
         addressState = mutableStateOf("")
         fusedClient = LocationServices.getFusedLocationProviderClient(this)
 
-        val languageCode = settingsViewModel.getSavedLanguage()
-        settingsViewModel.saveLanguage(languageCode)
+//        val languageCode = settingsViewModel.getSavedLanguage()
+//        settingsViewModel.saveLanguage(languageCode)
 
         enableEdgeToEdge()
 
         setContent {
             val navController = rememberNavController()
+            val navBackStackEntry by navController.currentBackStackEntryAsState()
+            val currentRoute = navBackStackEntry?.destination?.route
+
             Scaffold(
                 bottomBar = {
-                    BottomNavigationBar(navController = navController)
+                    if (currentRoute != "location") { // Hide bottom bar on MapScreen
+                        BottomNavigationBar(navController = navController)
+                    }
                 },
                 content = { padding ->
                     Box(modifier = Modifier.fillMaxSize()) {
@@ -153,7 +160,10 @@ fun NavHostContainer(
                 AlertScreen()
             }
             composable("setting") {
-                SettingScreen()
+                SettingScreen(navController)
+            }
+            composable("location") {
+                MapScreen(navController)
             }
         })
 }

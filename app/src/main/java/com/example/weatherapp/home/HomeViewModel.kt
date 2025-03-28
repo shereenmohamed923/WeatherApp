@@ -62,13 +62,13 @@ class HomeViewModel(
         }
     }
 
-    fun getSavedLocation(): Coord? {
-        return locationRepository.getSavedLocation()
-    }
-
-    fun saveLocation(lat: Double, lon: Double) {
-        locationRepository.saveLocation(lat, lon)
-    }
+//    fun getSavedLocation(): Coord {
+//        return locationRepository.getSavedLocation()
+//    }
+//
+//    fun saveLocation(lat: Double, lon: Double) {
+//        locationRepository.saveLocation(lat, lon)
+//    }
 
     private fun getWeatherData(coord: Coord, isOnline: Boolean, lang: String) {
         viewModelScope.launch(Dispatchers.IO) {
