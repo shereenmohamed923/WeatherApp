@@ -29,6 +29,14 @@ class LocationRepositoryImpl private constructor (context: Context): LocationRep
         return Coord(lat, lon)
     }
 
+    override fun saveLocationPreference(source: String) {
+        sharedPref.edit().putString("location_source", source).apply()
+    }
+
+    override fun getLocationPreference(): String {
+        return sharedPref.getString("location_source", "GPS") ?: "GPS"
+    }
+
     companion object{
         private var INSTANCE: LocationRepositoryImpl?= null
         fun getInstance(context: Context): LocationRepository {

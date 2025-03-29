@@ -8,17 +8,14 @@ import android.location.Location
 import android.location.LocationManager
 import android.os.Looper
 import android.util.Log
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.core.content.ContextCompat
-import com.example.weatherapp.data.model.Coord
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationCallback
 import com.google.android.gms.location.LocationRequest
 import com.google.android.gms.location.LocationResult
 import com.google.android.gms.location.Priority
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import java.util.Locale
 
 lateinit var fusedClient : FusedLocationProviderClient

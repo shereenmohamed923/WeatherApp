@@ -1,5 +1,7 @@
 package com.example.weatherapp.setting
 
+import android.content.Intent
+import android.provider.Settings
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
@@ -33,10 +35,21 @@ import com.example.weatherapp.data.repo.LocationRepositoryImpl
 import com.example.weatherapp.data.repo.SettingRepositoryImpl
 import com.example.weatherapp.location.MapScreen
 import com.example.weatherapp.utility.LocalizationHelper
+import com.example.weatherapp.utility.getFreshLocation
+import com.example.weatherapp.utility.isLocationEnabled
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.first
 
 @Composable
 fun SettingScreen(navController: NavController) {
-    val expandedStates = remember { mutableStateMapOf("language" to false, "location" to false, "temperature" to false, "wind" to false) }
+    val expandedStates = remember {
+        mutableStateMapOf(
+            "language" to false,
+            "location" to false,
+            "temperature" to false,
+            "wind" to false
+        )
+    }
     val context = LocalContext.current
 
     val settingsViewModel: SettingViewModel = viewModel(
@@ -51,7 +64,11 @@ fun SettingScreen(navController: NavController) {
             .fillMaxSize()
             .padding(16.dp)
     ) {
-        Text(text = stringResource(R.string.settings), fontSize = 24.sp, fontWeight = FontWeight.Bold)
+        Text(
+            text = stringResource(R.string.settings),
+            fontSize = 24.sp,
+            fontWeight = FontWeight.Bold
+        )
 
         Spacer(modifier = Modifier.height(16.dp))
 
@@ -72,10 +89,19 @@ fun SettingScreen(navController: NavController) {
             title = stringResource(R.string.location),
             options = listOf("GPS", "Map"),
             selectedOption = /*settingsViewModel.getSavedLocation(),*/"",
-            onOptionSelected = {
-                option ->
-                navController.navigate("location")
-            /*location -> settingsViewModel.saveLocation(location)*/ },
+            onOptionSelected = { option ->
+                if (option == "GPS") {
+                    if (isLocationEnabled(context)) {
+                        getFreshLocation()
+                        settingsViewModel.saveGps()
+                    } else {
+                        val intent = Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS)
+                        context.startActivity(intent)
+                    }
+                } else {
+                    navController.navigate("location")
+                }
+            },
             expandedStates = expandedStates,
             key = "location"
         )
@@ -144,7 +170,11 @@ fun ExpandableRow(
                         Text(text = option, fontSize = 16.sp)
                         Spacer(modifier = Modifier.weight(1f))
                         if (option == selectedOption) {
-                            Icon(imageVector = Icons.Default.Check, contentDescription = "Selected", tint = Color.Blue)
+                            Icon(
+                                imageVector = Icons.Default.Check,
+                                contentDescription = "Selected",
+                                tint = Color.Blue
+                            )
                         }
                     }
                 }

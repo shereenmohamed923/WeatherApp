@@ -4,7 +4,6 @@ import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
-import com.example.weatherapp.data.model.Coord
 import com.example.weatherapp.data.repo.LocationRepository
 
 class LocationViewModel(

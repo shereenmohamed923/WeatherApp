@@ -1,6 +1,5 @@
 package com.example.weatherapp.home
 
-import android.location.Location
 import android.os.Build
 import android.util.Log
 import androidx.annotation.RequiresApi
@@ -21,7 +20,6 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.firstOrNull
 import kotlinx.coroutines.launch
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -47,13 +45,24 @@ class HomeViewModel(
 
     init {
         viewModelScope.launch {
-            val location = locationRepository.locationFlow.filterNotNull().first()
-            refreshWeatherData(location.latitude, location.longitude, true)
+            val lat: Double
+            val lon: Double
+            if(locationRepository.getSavedLocation() == Coord(0.0, 0.0)){
+                val location = locationRepository.locationFlow.filterNotNull().first()
+                lat = location.latitude
+                lon  = location.longitude
+                locationRepository.saveLocation(lat = location.latitude, lon = location.longitude)
+            }
+           else{
+                val location = locationRepository.getSavedLocation()
+                lat = location.lat
+                lon = location.lon
+            }
+            refreshWeatherData(lat, lon, true)
             Log.d(
                 "LocationUpdate",
-                "New location received: ${location.latitude}, ${location.longitude}"
+                "New location received: $lat, $lon"
             )
-            locationRepository.saveLocation(lat = location.latitude, lon = location.longitude)
         }
 
         viewModelScope.launch {
@@ -61,14 +70,6 @@ class HomeViewModel(
             _temperatureUnit.value = unit
         }
     }
-
-//    fun getSavedLocation(): Coord {
-//        return locationRepository.getSavedLocation()
-//    }
-//
-//    fun saveLocation(lat: Double, lon: Double) {
-//        locationRepository.saveLocation(lat, lon)
-//    }
 
     private fun getWeatherData(coord: Coord, isOnline: Boolean, lang: String) {
         viewModelScope.launch(Dispatchers.IO) {
