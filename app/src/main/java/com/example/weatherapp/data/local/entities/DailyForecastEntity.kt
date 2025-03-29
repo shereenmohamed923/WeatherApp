@@ -13,8 +13,6 @@ data class DailyForecastEntity (
     val id: Int = 0,
     val homeCityId: Int,
     val date: String,
-    val minTemperature: Double,
-    val maxTemperature: Double,
     val weatherDescription: String,
     val weatherIcon: String
 )

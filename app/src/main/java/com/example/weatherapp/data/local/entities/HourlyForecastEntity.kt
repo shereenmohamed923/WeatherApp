@@ -12,10 +12,8 @@ data class HourlyForecastEntity(
     @PrimaryKey(autoGenerate = true)
     val id: Int = 0,
     val homeCityId: Int,
-    val dateTime: Long,
+    val dateTime: String,
     val temperature: Double,
     val weatherDescription: String,
     val weatherIcon: String,
-    val windSpeed: Double,
-    val clouds: Int
 )

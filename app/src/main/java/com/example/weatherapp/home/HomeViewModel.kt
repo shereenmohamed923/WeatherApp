@@ -73,72 +73,89 @@ class HomeViewModel(
 
     private fun getWeatherData(coord: Coord, isOnline: Boolean, lang: String) {
         viewModelScope.launch(Dispatchers.IO) {
-            repository.getCurrentWeather(coord, isOnline, lang)
-                .catch { ex ->
-                    _weatherData.value = DataResponse.Failure(ex)
-                    _toastEvent.emit("Couldn't fetch data ${ex.message}")
-                }
-                .collect { data ->
-                    Log.d("WeatherData", "Response: $data")
-                    _weatherData.value = DataResponse.Success(data)
-                }
+            try {
+                repository.getCurrentWeather(coord, isOnline, lang)
+                    .catch { ex ->
+                        _weatherData.value = DataResponse.Failure(ex)
+                        _toastEvent.emit("Couldn't fetch data ${ex.message}")
+                    }
+                    .collect { data ->
+                        Log.d("WeatherData", "Response: $data")
+                        _weatherData.value = DataResponse.Success(data)
+                    }
+            } catch (ex: Exception){
+                _weatherData.value = DataResponse.Failure(ex)
+                _toastEvent.emit("Couldn't fetch data ${ex.message}")
+            }
+
         }
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
     fun getHourlyForecastData(coord: Coord, isOnline: Boolean, lang: String) {
         viewModelScope.launch(Dispatchers.IO) {
-            repository.getForecastWeather(coord, isOnline, lang)
-                .catch { ex ->
-                    _hourlyForecastData.value = DataResponse.Failure(ex)
-                    _toastEvent.emit("Couldn't fetch data: ${ex.message}")
-                }
-                .collect { forecastResponse ->
-                    val updatedList = forecastResponse.list
-                        .take(8)
-                        .map { item ->
-                            val formattedTime = formatHourlyTime(item.dt_txt)
+            try{
+                repository.getForecastWeather(coord, isOnline, lang)
+                    .catch { ex ->
+                        _hourlyForecastData.value = DataResponse.Failure(ex)
+                        _toastEvent.emit("Couldn't fetch data: ${ex.message}")
+                    }
+                    .collect { forecastResponse ->
+                        val updatedList = forecastResponse.list
+                            .take(8)
+                            .map { item ->
+                                val formattedTime = formatHourlyTime(item.dt_txt)
 
-                            val updatedTime = if (settingRepository.getSavedLanguage() == "ar") {
-                                val num = formatNumber(formattedTime.split(" ")[0].toInt())
-                                val period = if (formattedTime.split(" ")[1] == "AM") "ص" else "م"
-                                "$num $period"
-                            } else {
-                                formattedTime
+                                val updatedTime = if (settingRepository.getSavedLanguage() == "ar") {
+                                    val num = formatNumber(formattedTime.split(" ")[0].toInt())
+                                    val period = if (formattedTime.split(" ")[1] == "AM") "ص" else "م"
+                                    "$num $period"
+                                } else {
+                                    formattedTime
+                                }
+                                item.copy(dt_txt = updatedTime)
                             }
-                            item.copy(dt_txt = updatedTime)
-                        }
-                    val updatedForecast = forecastResponse.copy(list = updatedList)
-                    _hourlyForecastData.value = DataResponse.Success(updatedForecast)
-                }
+                        val updatedForecast = forecastResponse.copy(list = updatedList)
+                        _hourlyForecastData.value = DataResponse.Success(updatedForecast)
+                    }
+            } catch (ex: Exception){
+                _weatherData.value = DataResponse.Failure(ex)
+                _toastEvent.emit("Couldn't fetch data ${ex.message}")
+            }
         }
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
     fun getDailyForecastData(coord: Coord, isOnline: Boolean, lang: String) {
         viewModelScope.launch(Dispatchers.IO) {
-            repository.getForecastWeather(coord, isOnline, lang)
-                .catch { ex ->
-                    _dailyForecastData.value = DataResponse.Failure(ex)
-                    _toastEvent.emit("Couldn't fetch data: ${ex.message}")
-                }
-                .collect { forecastResponse ->
-                    val groupedByDate = forecastResponse.list
-                        .groupBy { item -> item.dt_txt.substring(0, 10) }
-
-                    val dailyAverages = groupedByDate.map { (date, items) ->
-                        val avgTemp = items.map { it.main.temp }.average()
-                        ForecastItem(
-                            dt_txt = formatDailyTime(date),
-                            main = items.first().main.copy(temp = avgTemp),
-                            weather = items.first().weather
-                        )
+            try {
+                repository.getForecastWeather(coord, isOnline, lang)
+                    .catch { ex ->
+                        _dailyForecastData.value = DataResponse.Failure(ex)
+                        _toastEvent.emit("Couldn't fetch data: ${ex.message}")
                     }
-                    val fiveDayForecast = dailyAverages.drop(1).take(5)
+                    .collect { forecastResponse ->
+                        val groupedByDate = forecastResponse.list
+                            .groupBy { item -> item.dt_txt.substring(0, 10) }
 
-                    val updatedForecast = forecastResponse.copy(list = fiveDayForecast)
-                    _dailyForecastData.value = DataResponse.Success(updatedForecast)
-                }
+                        val dailyAverages = groupedByDate.map { (date, items) ->
+                            val avgTemp = items.map { it.main.temp }.average()
+                            ForecastItem(
+                                dt_txt = formatDailyTime(date),
+                                main = items.first().main.copy(temp = avgTemp),
+                                weather = items.first().weather
+                            )
+                        }
+                        val fiveDayForecast = dailyAverages.drop(1).take(5)
+
+                        val updatedForecast = forecastResponse.copy(list = fiveDayForecast)
+                        _dailyForecastData.value = DataResponse.Success(updatedForecast)
+                    }
+            } catch (ex: Exception){
+                _weatherData.value = DataResponse.Failure(ex)
+                _toastEvent.emit("Couldn't fetch data ${ex.message}")
+            }
+
         }
     }
 

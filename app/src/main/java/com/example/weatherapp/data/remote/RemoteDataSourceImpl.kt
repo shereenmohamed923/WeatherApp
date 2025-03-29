@@ -15,6 +15,7 @@ class RemoteDataSourceImpl(private val service: ApiService): RemoteDataSource {
             throw Exception("No data received")
         }
     }
+
     override suspend fun getForecastWeather(coord: Coord, lang: String): Flow<ForecastResponse> = flow {
         val response = service.getForecastWeather(lat = coord.lat, lon = coord.lon, lang = lang).body()
         if (response != null) {

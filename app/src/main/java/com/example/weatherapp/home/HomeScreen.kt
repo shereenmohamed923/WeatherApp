@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.provider.Settings
+import android.util.Log
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -51,9 +52,14 @@ import androidx.core.app.ActivityCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.weatherapp.My_LOCATION_PERMISSION_ID
 import com.example.weatherapp.R
+import com.example.weatherapp.data.local.LocalDataSourceImpl
+import com.example.weatherapp.data.local.WeatherDatabase
+import com.example.weatherapp.data.local.entities.HourlyForecastEntity
 import com.example.weatherapp.data.model.CurrentWeatherResponse
 import com.example.weatherapp.data.model.ForecastItem
 import com.example.weatherapp.data.model.ForecastResponse
+import com.example.weatherapp.data.model.Main
+import com.example.weatherapp.data.model.Weather
 import com.example.weatherapp.data.remote.RemoteDataSourceImpl
 import com.example.weatherapp.data.remote.RetrofitHelper
 import com.example.weatherapp.data.repo.LocationRepositoryImpl
@@ -78,7 +84,7 @@ fun HomeScreen() {
     val context: Context = LocalContext.current
     val homeViewModel: HomeViewModel = viewModel(
         factory = HomeFactory(
-            WeatherRepositoryImpl.getInstance(RemoteDataSourceImpl(RetrofitHelper.service)),
+            WeatherRepositoryImpl.getInstance(RemoteDataSourceImpl(RetrofitHelper.service), LocalDataSourceImpl(WeatherDatabase.getInstance(context).weatherDao())),
             SettingRepositoryImpl.getInstance(context),
             LocationRepositoryImpl.getInstance(context)
         )
@@ -115,10 +121,11 @@ fun HomeScreen() {
     ) {
         when (val state = currentWeatherState.value) {
             is DataResponse.Loading -> {
+                Log.i("HomeScreen", "currentWeatherState: loading")
                 CircularProgressIndicator()
             }
-
             is DataResponse.Success -> {
+                Log.i("HomeScreen", "currentWeatherState: success")
                 if (state.data is CurrentWeatherResponse) {
                     val currentWeather = state.data
                     Text(
@@ -160,16 +167,19 @@ fun HomeScreen() {
                     Spacer(Modifier.height(16.dp))
                     WeatherDetails(currentWeather)
                     Spacer(Modifier.height(16.dp))
+                    Log.i("HomeScreen", "before: loading")
                     when (val hourlyForecastWeatherState = hourlyForecastState.value) {
                         is DataResponse.Loading -> {}
                         is DataResponse.Success -> {
                             if (hourlyForecastWeatherState.data is ForecastResponse) {
+                                Log.i("HomeScreen", "ForecastResponse: ")
                                 val forecastWeather = hourlyForecastWeatherState.data
                                 HourlyForecast(forecastWeather.list, temperatureUnit)
                             }
                         }
 
                         is DataResponse.Failure -> {
+                            Log.i("HomeScreen", "forecast: failure")
                             val failed = hourlyForecastWeatherState.error
                             LaunchedEffect(failed) {
                                 snackBarHostState.showSnackbar(
@@ -203,6 +213,7 @@ fun HomeScreen() {
             }
 
             is DataResponse.Failure -> {
+                Log.i("HomeScreen", "currentWeatherState: failure")
                 val failed = state.error
                 LaunchedEffect(failed) {
                     snackBarHostState.showSnackbar(
