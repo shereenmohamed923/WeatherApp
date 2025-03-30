@@ -54,12 +54,9 @@ import com.example.weatherapp.My_LOCATION_PERMISSION_ID
 import com.example.weatherapp.R
 import com.example.weatherapp.data.local.LocalDataSourceImpl
 import com.example.weatherapp.data.local.WeatherDatabase
-import com.example.weatherapp.data.local.entities.HourlyForecastEntity
 import com.example.weatherapp.data.model.CurrentWeatherResponse
 import com.example.weatherapp.data.model.ForecastItem
 import com.example.weatherapp.data.model.ForecastResponse
-import com.example.weatherapp.data.model.Main
-import com.example.weatherapp.data.model.Weather
 import com.example.weatherapp.data.remote.RemoteDataSourceImpl
 import com.example.weatherapp.data.remote.RetrofitHelper
 import com.example.weatherapp.data.repo.LocationRepositoryImpl
@@ -75,7 +72,7 @@ import java.text.SimpleDateFormat
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
-import java.util.Calendar
+import java.util.Date
 import java.util.Locale
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -125,7 +122,7 @@ fun HomeScreen() {
                 CircularProgressIndicator()
             }
             is DataResponse.Success -> {
-                Log.i("HomeScreen", "currentWeatherState: success")
+
                 if (state.data is CurrentWeatherResponse) {
                     val currentWeather = state.data
                     Text(
@@ -160,7 +157,7 @@ fun HomeScreen() {
                         fontWeight = FontWeight.Bold
                     )
                     Text(
-                        text = getCurrentDateTime(),
+                        text = formatCurrentDateTime(currentWeather.dt),
                         fontSize = 16.sp,
                         color = Color.White.copy(alpha = 0.7f)
                     )
@@ -476,10 +473,14 @@ fun DailyForecastItem(
 
 //----------------------------helper functions should be removed to utilities--------------------------------
 
-fun getCurrentDateTime(): String {
-    val calendar = Calendar.getInstance()
+fun getCurrentDateTime(): Double {
+    return System.currentTimeMillis() / 1000.0
+}
+
+fun formatCurrentDateTime(timestamp: Double): String {
+    val date = Date((timestamp * 1000).toLong())
     val formatter = SimpleDateFormat("EEEE, dd MMMM yyyy | HH:mm", Locale.getDefault())
-    return formatter.format(calendar.time)
+    return formatter.format(date)
 }
 
 fun convertPressureToPercentage(
@@ -515,4 +516,3 @@ fun formatNumber(value: Int): String {
     val formatter = NumberFormat.getInstance(Locale.getDefault())
     return formatter.format(value)
 }
-

@@ -105,7 +105,7 @@ class MainActivity : ComponentActivity() {
 
             Scaffold(
                 bottomBar = {
-                    if (currentRoute != "location") { // Hide bottom bar on MapScreen
+                    if (currentRoute != "location") {
                         BottomNavigationBar(navController = navController)
                     }
                 },

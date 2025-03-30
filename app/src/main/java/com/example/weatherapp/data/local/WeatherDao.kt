@@ -6,9 +6,8 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import com.example.weatherapp.data.local.entities.CurrentWeatherEntity
-import com.example.weatherapp.data.local.entities.DailyForecastEntity
 import com.example.weatherapp.data.local.entities.FavoriteCityEntity
-import com.example.weatherapp.data.local.entities.HourlyForecastEntity
+import com.example.weatherapp.data.local.entities.ForecastEntity
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -23,16 +22,10 @@ interface WeatherDao {
     suspend fun deleteCurrentWeather(currentWeather: CurrentWeatherEntity)
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertHourlyForecast(forecast: List<HourlyForecastEntity>)
+    suspend fun insertForecast(forecast: List<ForecastEntity>)
 
-    @Query("SELECT * FROM hourly_forecast ORDER BY dateTime ASC")
-    fun getHourlyForecast(): Flow<List<HourlyForecastEntity>>
-
-    @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertDailyForecast(forecast: List<DailyForecastEntity>)
-
-    @Query("SELECT * FROM daily_forecast ORDER BY date ASC")
-    fun getDailyForecast(): Flow<List<DailyForecastEntity>>
+    @Query("SELECT * FROM forecast_table ORDER BY dateTime ASC")
+    fun getForecast(): Flow<List<ForecastEntity>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertFavoriteCity(city: FavoriteCityEntity)

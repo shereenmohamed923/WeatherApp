@@ -4,15 +4,15 @@ import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.PrimaryKey
 
-@Entity(
-    tableName = "daily_forecast",
-    foreignKeys = [ForeignKey(entity = CurrentWeatherEntity::class, parentColumns = ["cityId"], childColumns = ["homeCityId"], onDelete = ForeignKey.CASCADE)]
-)
-data class DailyForecastEntity (
-    @PrimaryKey(autoGenerate = true)
-    val id: Int = 0,
-    val homeCityId: Int,
-    val date: String,
-    val weatherDescription: String,
-    val weatherIcon: String
-)
+//@Entity(
+//    tableName = "daily_forecast",
+//    foreignKeys = [ForeignKey(entity = CurrentWeatherEntity::class, parentColumns = ["cityId"], childColumns = ["homeCityId"], onDelete = ForeignKey.CASCADE)]
+//)
+//data class DailyForecastEntity (
+//    @PrimaryKey(autoGenerate = true)
+//    val id: Int = 0,
+//    val homeCityId: Int,
+//    val date: String,
+//    val weatherDescription: String,
+//    val weatherIcon: String
+//)

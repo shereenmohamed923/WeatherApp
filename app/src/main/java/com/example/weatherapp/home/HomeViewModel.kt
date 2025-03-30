@@ -6,6 +6,8 @@ import androidx.annotation.RequiresApi
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.example.weatherapp.data.local.entities.CurrentWeatherEntity
+import com.example.weatherapp.data.local.entities.ForecastEntity
 import com.example.weatherapp.data.model.Coord
 import com.example.weatherapp.data.model.ForecastItem
 import com.example.weatherapp.data.repo.LocationRepository
@@ -20,6 +22,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -47,18 +50,18 @@ class HomeViewModel(
         viewModelScope.launch {
             val lat: Double
             val lon: Double
-            if(locationRepository.getSavedLocation() == Coord(0.0, 0.0)){
-                val location = locationRepository.locationFlow.filterNotNull().first()
+            if (locationRepository.getSavedLocation() == Coord(0.0, 0.0)) {
+                val location = locationRepository.locationFlow.filterNotNull()
+                    .first() //!!!!should be handled if null
                 lat = location.latitude
-                lon  = location.longitude
+                lon = location.longitude
                 locationRepository.saveLocation(lat = location.latitude, lon = location.longitude)
-            }
-           else{
+            } else {
                 val location = locationRepository.getSavedLocation()
                 lat = location.lat
                 lon = location.lon
             }
-            refreshWeatherData(lat, lon, true)
+            refreshWeatherData(lat, lon, false)
             Log.d(
                 "LocationUpdate",
                 "New location received: $lat, $lon"
@@ -66,46 +69,87 @@ class HomeViewModel(
         }
 
         viewModelScope.launch {
-            val unit = settingRepository.unitFlow.filterNotNull().first()
+            val unit: String = try {
+                settingRepository.unitFlow.filterNotNull().first()
+            } catch (e: Exception) {
+                "Kelvin"
+            }
             _temperatureUnit.value = unit
         }
     }
 
     private fun getWeatherData(coord: Coord, isOnline: Boolean, lang: String) {
         viewModelScope.launch(Dispatchers.IO) {
-            try {
-                repository.getCurrentWeather(coord, isOnline, lang)
-                    .catch { ex ->
-                        _weatherData.value = DataResponse.Failure(ex)
-                        _toastEvent.emit("Couldn't fetch data ${ex.message}")
-                    }
-                    .collect { data ->
-                        Log.d("WeatherData", "Response: $data")
-                        _weatherData.value = DataResponse.Success(data)
-                    }
-            } catch (ex: Exception){
-                _weatherData.value = DataResponse.Failure(ex)
-                _toastEvent.emit("Couldn't fetch data ${ex.message}")
-            }
+            val data = repository.getCurrentWeather(coord, isOnline, lang)
+                .map { data ->
+                    data.copy(dt = getCurrentDateTime())
+                }
+                .catch { ex ->
+                    _weatherData.value = DataResponse.Failure(ex)
+                    _toastEvent.emit("Couldn't fetch data ${ex.message}")
+                }
+            if (isOnline) {
+                val convertedData = data.map { response ->
+                    CurrentWeatherEntity(
+                        cityId = response.id,
+                        cityName = response.name,
+                        lat = response.coord.lat,
+                        lon = response.coord.lon,
+                        temperature = response.main.temp,
+                        pressure = response.main.pressure,
+                        humidity = response.main.humidity,
+                        windSpeed = response.wind.speed,
+                        clouds = response.clouds.all,
+                        weatherDescription = response.weather[0].description,
+                        weatherIcon = response.weather[0].icon,
+                        lastUpdatedDate = getCurrentDateTime()
+                    )
+                }
 
+                try {
+                    repository.addCurrentWeather(currentWeather = convertedData.first())
+                } catch (e: Exception) {
+                    Log.e("handling .first()", "addCurrentWeather: no data to show")
+                }
+            }
+            data.collect { updatedData ->
+                Log.d("date update", "Response: ${updatedData.dt}")
+                _weatherData.value = DataResponse.Success(updatedData)
+            }
         }
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
     fun getHourlyForecastData(coord: Coord, isOnline: Boolean, lang: String) {
         viewModelScope.launch(Dispatchers.IO) {
-            try{
+            try {
                 repository.getForecastWeather(coord, isOnline, lang)
                     .catch { ex ->
                         _hourlyForecastData.value = DataResponse.Failure(ex)
                         _toastEvent.emit("Couldn't fetch data: ${ex.message}")
                     }
-                    .collect { forecastResponse ->
+                    .map { forecastResponse ->
+                        if (isOnline) {
+                            val convertedData = forecastResponse.list.mapIndexed { index, forecastItem ->
+                                ForecastEntity(
+                                    id = (System.currentTimeMillis() + index).toInt(), // Unique ID
+                                    homeCityId = forecastResponse.city.id,
+                                    cityName = forecastResponse.city.name,
+                                    lat = forecastResponse.city.coord.lat,
+                                    lon = forecastResponse.city.coord.lon,
+                                    dateTime = forecastItem.dt_txt,
+                                    temperature = forecastItem.main.temp,
+                                    weatherDescription = forecastItem.weather.firstOrNull()?.description ?: "Unknown",
+                                    weatherIcon = forecastItem.weather.firstOrNull()?.icon ?: "01d",
+                                )
+                            }
+                            repository.addForecast(convertedData)
+                        }
+
                         val updatedList = forecastResponse.list
                             .take(8)
                             .map { item ->
                                 val formattedTime = formatHourlyTime(item.dt_txt)
-
                                 val updatedTime = if (settingRepository.getSavedLanguage() == "ar") {
                                     val num = formatNumber(formattedTime.split(" ")[0].toInt())
                                     val period = if (formattedTime.split(" ")[1] == "AM") "ص" else "م"
@@ -115,15 +159,82 @@ class HomeViewModel(
                                 }
                                 item.copy(dt_txt = updatedTime)
                             }
-                        val updatedForecast = forecastResponse.copy(list = updatedList)
+
+                        forecastResponse.copy(list = updatedList)
+                    }
+                    .collect { updatedForecast ->
                         _hourlyForecastData.value = DataResponse.Success(updatedForecast)
                     }
-            } catch (ex: Exception){
-                _weatherData.value = DataResponse.Failure(ex)
+
+            } catch (ex: Exception) {
+                _hourlyForecastData.value = DataResponse.Failure(ex)
                 _toastEvent.emit("Couldn't fetch data ${ex.message}")
             }
         }
     }
+
+
+
+//    @RequiresApi(Build.VERSION_CODES.O)
+//    fun getHourlyForecastData(coord: Coord, isOnline: Boolean, lang: String) {
+//        viewModelScope.launch(Dispatchers.IO) {
+//            try {
+//                val data = repository.getForecastWeather(coord, isOnline, lang)
+//                    .catch { ex ->
+//                        _hourlyForecastData.value = DataResponse.Failure(ex)
+//                        _toastEvent.emit("Couldn't fetch data: ${ex.message}")
+//                    }
+//                if (isOnline) {
+//                    val convertedData = data.list.mapIndexed { index, forecastItem ->
+//                        ForecastEntity(
+//                            id = System.currentTimeMillis() + index, // Unique ID (alternative: UUID.randomUUID().toString())
+//                            homeCityId = data.city.id,
+//                            cityName = data.city.name,
+//                            lat = data.city.coord.lat,
+//                            lon = data.city.coord.lon,
+//                            temperature = forecastItem.main.temp,
+//                            pressure = forecastItem.main.pressure,
+//                            humidity = forecastItem.main.humidity,
+//                            windSpeed = forecastItem.wind.speed,
+//                            clouds = forecastItem.clouds.all,
+//                            weatherDescription = forecastItem.weather.firstOrNull()?.description ?: "Unknown",
+//                            weatherIcon = forecastItem.weather.firstOrNull()?.icon ?: "01d",
+//                            lastUpdatedDate = getCurrentDateTime()
+//                        )
+//                    }
+//
+//                    try {
+//                        repository.addForecast(forecast = convertedData.first())
+//                    } catch (e: Exception) {
+//                        Log.e("handling .first()", "addCurrentWeather: no data to show")
+//                    }
+//                }
+//                    data.collect { forecastResponse ->
+//                        val updatedList = forecastResponse.list
+//                            .take(8)
+//                            .map { item ->
+//                                val formattedTime = formatHourlyTime(item.dt_txt)
+//
+//                                val updatedTime =
+//                                    if (settingRepository.getSavedLanguage() == "ar") {
+//                                        val num = formatNumber(formattedTime.split(" ")[0].toInt())
+//                                        val period =
+//                                            if (formattedTime.split(" ")[1] == "AM") "ص" else "م"
+//                                        "$num $period"
+//                                    } else {
+//                                        formattedTime
+//                                    }
+//                                item.copy(dt_txt = updatedTime)
+//                            }
+//                        val updatedForecast = forecastResponse.copy(list = updatedList)
+//                        _hourlyForecastData.value = DataResponse.Success(updatedForecast)
+//                    }
+//            } catch (ex: Exception) {
+//                _weatherData.value = DataResponse.Failure(ex)
+//                _toastEvent.emit("Couldn't fetch data ${ex.message}")
+//            }
+//        }
+//    }
 
     @RequiresApi(Build.VERSION_CODES.O)
     fun getDailyForecastData(coord: Coord, isOnline: Boolean, lang: String) {
@@ -151,7 +262,7 @@ class HomeViewModel(
                         val updatedForecast = forecastResponse.copy(list = fiveDayForecast)
                         _dailyForecastData.value = DataResponse.Success(updatedForecast)
                     }
-            } catch (ex: Exception){
+            } catch (ex: Exception) {
                 _weatherData.value = DataResponse.Failure(ex)
                 _toastEvent.emit("Couldn't fetch data ${ex.message}")
             }

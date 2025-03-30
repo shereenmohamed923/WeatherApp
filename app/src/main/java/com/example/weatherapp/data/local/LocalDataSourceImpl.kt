@@ -1,9 +1,8 @@
 package com.example.weatherapp.data.local
 
 import com.example.weatherapp.data.local.entities.CurrentWeatherEntity
-import com.example.weatherapp.data.local.entities.DailyForecastEntity
 import com.example.weatherapp.data.local.entities.FavoriteCityEntity
-import com.example.weatherapp.data.local.entities.HourlyForecastEntity
+import com.example.weatherapp.data.local.entities.ForecastEntity
 import kotlinx.coroutines.flow.Flow
 
 class LocalDataSourceImpl(private val dao: WeatherDao): LocalDataSource {
@@ -20,20 +19,12 @@ class LocalDataSourceImpl(private val dao: WeatherDao): LocalDataSource {
        dao.deleteCurrentWeather(currentWeather)
     }
 
-    override suspend fun insertHourlyForecast(forecast: List<HourlyForecastEntity>) {
-        dao.insertHourlyForecast(forecast)
+    override suspend fun insertForecast(forecast: List<ForecastEntity>) {
+        dao.insertForecast(forecast)
     }
 
-    override suspend fun getHourlyForecast(): Flow<List<HourlyForecastEntity>>  {
-        return dao.getHourlyForecast()
-    }
-
-    override suspend fun insertDailyForecast(forecast: List<DailyForecastEntity>) {
-        dao.insertDailyForecast(forecast)
-    }
-
-    override suspend fun getDailyForecast(): Flow<List<DailyForecastEntity>> {
-        return dao.getDailyForecast()
+    override suspend fun getForecast(): Flow<List<ForecastEntity>>  {
+        return dao.getForecast()
     }
 
     override suspend fun insertFavoriteCity(city: FavoriteCityEntity) {

@@ -8,5 +8,5 @@ data class CurrentWeatherResponse (
     val weather: List<Weather>,
     val name: String,
     val wind: Wind,
-    val sys: Sys
-)
+    var dt:Double
+    )

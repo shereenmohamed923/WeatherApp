@@ -5,13 +5,12 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import com.example.weatherapp.data.local.entities.CurrentWeatherEntity
-import com.example.weatherapp.data.local.entities.DailyForecastEntity
 import com.example.weatherapp.data.local.entities.FavoriteCityEntity
-import com.example.weatherapp.data.local.entities.HourlyForecastEntity
+import com.example.weatherapp.data.local.entities.ForecastEntity
 
 @Database(
-    entities = [CurrentWeatherEntity::class, HourlyForecastEntity::class, DailyForecastEntity::class, FavoriteCityEntity::class],
-    version = 3
+    entities = [CurrentWeatherEntity::class, ForecastEntity::class, FavoriteCityEntity::class],
+    version = 6
 )
 abstract class WeatherDatabase : RoomDatabase() {
 
@@ -26,7 +25,9 @@ abstract class WeatherDatabase : RoomDatabase() {
                     context,
                     WeatherDatabase::class.java,
                     "weather_database"
-                ).build()
+                )
+                    .fallbackToDestructiveMigration()
+                    .build()
                 INSTANCE = instance
                 instance
             }
