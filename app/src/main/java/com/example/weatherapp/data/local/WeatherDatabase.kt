@@ -10,7 +10,7 @@ import com.example.weatherapp.data.local.entities.ForecastEntity
 
 @Database(
     entities = [CurrentWeatherEntity::class, ForecastEntity::class, FavoriteCityEntity::class],
-    version = 8
+    version = 9
 )
 abstract class WeatherDatabase : RoomDatabase() {
 

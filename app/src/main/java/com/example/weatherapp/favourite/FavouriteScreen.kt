@@ -3,7 +3,6 @@ package com.example.weatherapp.favourite
 
 import android.annotation.SuppressLint
 import android.content.Context
-import android.provider.CalendarContract.Colors
 import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -25,20 +24,16 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -46,14 +41,10 @@ import androidx.navigation.NavController
 import com.example.weatherapp.R
 import com.example.weatherapp.data.local.LocalDataSourceImpl
 import com.example.weatherapp.data.local.WeatherDatabase
-import com.example.weatherapp.data.local.entities.FavoriteCityEntity
+import com.example.weatherapp.data.local.entities.CurrentWeatherEntity
 import com.example.weatherapp.data.remote.RemoteDataSourceImpl
 import com.example.weatherapp.data.remote.RetrofitHelper
-import com.example.weatherapp.data.repo.LocationRepositoryImpl
-import com.example.weatherapp.data.repo.SettingRepositoryImpl
 import com.example.weatherapp.data.repo.WeatherRepositoryImpl
-import com.example.weatherapp.home.HomeFactory
-import com.example.weatherapp.home.HomeViewModel
 import com.example.weatherapp.utility.DataResponse
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
@@ -126,7 +117,7 @@ fun FavouriteScreen(navController: NavController) {
                                     if(state.data.isEmpty()){
 
                                     }else{
-                                        val favouritePlaces = state.data as List<FavoriteCityEntity>
+                                        val favouritePlaces = state.data as List<CurrentWeatherEntity>
                                         FavouritePlaces(
                                             places = favouritePlaces
                                         )
@@ -148,7 +139,7 @@ fun FavouriteScreen(navController: NavController) {
 }
 
 @Composable
-fun FavouritePlaces(places: List<FavoriteCityEntity>){
+fun FavouritePlaces(places: List<CurrentWeatherEntity>){
     Column {
         LazyColumn(
             modifier = Modifier.fillMaxSize(),

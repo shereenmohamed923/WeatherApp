@@ -5,7 +5,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.weatherapp.data.local.entities.CurrentWeatherEntity
-import com.example.weatherapp.data.local.entities.FavoriteCityEntity
 import com.example.weatherapp.data.model.Coord
 import com.example.weatherapp.data.repo.WeatherRepository
 import com.example.weatherapp.home.getCurrentDateTime
@@ -16,7 +15,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 
@@ -39,16 +37,15 @@ class FavouriteViewModel(private val weatherRepository: WeatherRepository): View
                     _toastEvent.emit("Couldn't fetch your favourite ${ex.message}")
                 }
                 .collect{ places ->
-                   // Log.d("favourite", "Response: ${places[0].lat}, ${places[0].lon}, ${places[0].cityName}")
                     _favouritePlaces.value = DataResponse.Success(places)
                 }
         }
     }
 
-    private fun addFavouritePlace(city: FavoriteCityEntity){
+    private fun addFavouritePlace(cityCurrentWeather: CurrentWeatherEntity){
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                weatherRepository.addFavoriteCity(city)
+                weatherRepository.addFavoriteCity(cityCurrentWeather)
             }catch (e: Exception){
                 _toastEvent.emit("Couldn't add your place to favourites ${e.message}")
             }
@@ -67,22 +64,34 @@ class FavouriteViewModel(private val weatherRepository: WeatherRepository): View
                 }
             if (isOnline) {
                 val convertedData = data.map { response ->
-                    FavoriteCityEntity(
+                    CurrentWeatherEntity(
                         cityId = response.id,
                         cityName = response.name,
                         lat = response.coord.lat,
                         lon = response.coord.lon,
+                        temperature = response.main.temp,
+                        pressure = response.main.pressure,
+                        humidity = response.main.humidity,
+                        windSpeed = response.wind.speed,
+                        clouds = response.clouds.all,
                         weatherDescription = response.weather[0].description,
                         weatherIcon = response.weather[0].icon,
+                        lastUpdatedDate = getCurrentDateTime(),
+                        isFav = true
                     )
                 }
-
-                try {
-                    addFavouritePlace(city = convertedData.first())
-                } catch (e: Exception) {
-                    Log.e("favourite viewmodel", "addCurrentWeather: no data to show")
+                    .catch { ex ->
+                        _toastEvent.emit("Couldn't fetch data ${ex.message}")
+                    }
+                    .collect{ updatedData ->
+                    try {
+                        addFavouritePlace(cityCurrentWeather = updatedData)
+                    } catch (e: Exception) {
+                        Log.e("favourite viewmodel", "addCurrentWeather: couldn't add data ${e.message}")
+                    }
                 }
             }
+
             data.collect { updatedData ->
                 Log.d("date update", "Response: ${updatedData.dt}")
                 _weatherData.value = DataResponse.Success(updatedData)

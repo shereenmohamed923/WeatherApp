@@ -2,7 +2,6 @@ package com.example.weatherapp.data.repo
 
 import com.example.weatherapp.data.local.LocalDataSource
 import com.example.weatherapp.data.local.entities.CurrentWeatherEntity
-import com.example.weatherapp.data.local.entities.FavoriteCityEntity
 import com.example.weatherapp.data.local.entities.ForecastEntity
 import com.example.weatherapp.data.model.City
 import com.example.weatherapp.data.model.Clouds
@@ -47,8 +46,8 @@ class WeatherRepositoryImpl private constructor(
         return localDataSource.insertCurrentWeather(currentWeather = currentWeather)
     }
 
-    override suspend fun removeCurrentWeather(currentWeather: CurrentWeatherEntity) {
-        return localDataSource.deleteCurrentWeather(currentWeather = currentWeather)
+    override suspend fun removeCurrentWeather() {
+        return localDataSource.deleteCurrentWeather()
     }
 
     override suspend fun getForecastWeather(coord: Coord, isOnline: Boolean, lang:String): Flow<ForecastResponse> {
@@ -89,16 +88,24 @@ class WeatherRepositoryImpl private constructor(
     }
 
 
-    override suspend fun getAllFavoriteCities(): Flow<List<FavoriteCityEntity>> {
+    override suspend fun getAllFavoriteCities(): Flow<List<CurrentWeatherEntity>> {
         return localDataSource.getAllFavoriteCities()
     }
 
-    override suspend fun addFavoriteCity(city: FavoriteCityEntity) {
-        localDataSource.insertFavoriteCity(city)
+    override suspend fun getFavoriteCityCurrent(cityId: Int): Flow<List<CurrentWeatherEntity>> {
+        return  localDataSource.getFavoriteCityCurrent(cityId)
     }
 
-    override suspend fun removeFavoriteCity(city: FavoriteCityEntity) {
-        localDataSource.deleteFavoriteCity(city)
+    override suspend fun getFavoriteCityForecast(cityId: Int): Flow<List<ForecastEntity>> {
+        return localDataSource.getFavoriteCityForecast(cityId)
+    }
+
+    override suspend fun addFavoriteCity(cityCurrentWeather: CurrentWeatherEntity) {
+        localDataSource.insertFavoriteCity(cityCurrentWeather)
+    }
+
+    override suspend fun removeFavoriteCity(cityId: Int){
+        localDataSource.deleteFavoriteCity(cityId)
     }
 
     companion object{
