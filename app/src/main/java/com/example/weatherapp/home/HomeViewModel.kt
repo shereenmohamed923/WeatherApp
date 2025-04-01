@@ -129,7 +129,7 @@ class HomeViewModel(
                     }
                     .map { forecastResponse ->
                         if (isOnline) {
-                            val convertedData = forecastResponse.list.mapIndexed { index, forecastItem ->
+                            val convertedData = forecastResponse.list.map {forecastItem ->
                                 ForecastEntity(
                                     homeCityId = forecastResponse.city.id,
                                     cityName = forecastResponse.city.name,
@@ -137,8 +137,8 @@ class HomeViewModel(
                                     lon = forecastResponse.city.coord.lon,
                                     dateTime = forecastItem.dt_txt,
                                     temperature = forecastItem.main.temp,
-                                    weatherDescription = forecastItem.weather.firstOrNull()?.description ?: "Unknown",
-                                    weatherIcon = forecastItem.weather.firstOrNull()?.icon ?: "01d",
+                                    weatherDescription = forecastItem.weather[0].description,
+                                    weatherIcon = forecastItem.weather[0].icon,
                                 )
                             }
                             repository.addForecast(convertedData)

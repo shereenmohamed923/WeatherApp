@@ -24,10 +24,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
-import com.example.weatherapp.R
 import com.example.weatherapp.data.local.LocalDataSourceImpl
 import com.example.weatherapp.data.local.WeatherDatabase
-import com.example.weatherapp.data.local.entities.FavoriteCityEntity
 import com.example.weatherapp.data.model.Coord
 import com.example.weatherapp.data.remote.RemoteDataSourceImpl
 import com.example.weatherapp.data.remote.RetrofitHelper
@@ -47,7 +45,7 @@ import com.google.maps.android.compose.MarkerState
 import com.google.maps.android.compose.rememberCameraPositionState
 
 @Composable
-fun MapScreen(navController: NavHostController) {
+fun MapScreen(navController: NavHostController, source: String) {
     val context = LocalContext.current
 
     val settingsViewModel: SettingViewModel = viewModel(
@@ -114,18 +112,21 @@ fun MapScreen(navController: NavHostController) {
             Button(
                 onClick = {
                     Log.i("TAG", "MapScreen: ${selectedLocation.latitude}, ${selectedLocation.longitude}")
-//                    settingsViewModel.saveLocation(
-//                        lat = selectedLocation.latitude,
-//                        lon = selectedLocation.longitude
-//                    )
-                    favouritesViewModel.getWeatherData(
-                        coord = Coord(
-                            lat = selectedLocation.latitude,
-                            lon = selectedLocation.longitude
-                        ),
-                        isOnline = true,
-                        lang = "en"
+                    if (source == "settings"){
+                        settingsViewModel.saveLocation(
+                        lat = selectedLocation.latitude,
+                        lon = selectedLocation.longitude
                     )
+                    }else if(source == "favorites"){
+                        favouritesViewModel.getWeatherData(
+                            coord = Coord(
+                                lat = selectedLocation.latitude,
+                                lon = selectedLocation.longitude
+                            ),
+                            isOnline = true,
+                            lang = "en"
+                        )
+                    }
                     navController.popBackStack()
                 },
                 modifier = Modifier.padding(16.dp)

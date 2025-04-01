@@ -6,6 +6,7 @@ import android.content.Context
 import android.util.Log
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -69,7 +70,7 @@ fun FavouriteScreen(navController: NavController) {
     Scaffold(
         floatingActionButton = {
             FloatingActionButton(
-                onClick = { navController.navigate("location") },
+                onClick = { navController.navigate("location/favorites") },
                 containerColor = Color(0xFF523D7F),
                 contentColor = Color.White
             ) {
@@ -119,7 +120,8 @@ fun FavouriteScreen(navController: NavController) {
                                     }else{
                                         val favouritePlaces = state.data as List<CurrentWeatherEntity>
                                         FavouritePlaces(
-                                            places = favouritePlaces
+                                            places = favouritePlaces,
+                                            favouriteViewModel
                                         )
                                         Log.i("favourite", "favouritePlaces: $favouritePlaces")
                                     }
@@ -139,7 +141,7 @@ fun FavouriteScreen(navController: NavController) {
 }
 
 @Composable
-fun FavouritePlaces(places: List<CurrentWeatherEntity>){
+fun FavouritePlaces(places: List<CurrentWeatherEntity>, viewModel: FavouriteViewModel){
     Column {
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
@@ -149,8 +151,11 @@ fun FavouritePlaces(places: List<CurrentWeatherEntity>){
                 WeatherCard(
                     city = place.cityName,
                     condition = place.weatherDescription,
-                    iconRes = R.drawable.cloudy_weather
-                )
+                    iconRes = R.drawable.cloudy_weather,
+                    cityId = place.cityId
+                ){
+                    viewModel.removeFavouritePlace(place.cityId)
+                }
             }
         }
     }
@@ -158,7 +163,7 @@ fun FavouritePlaces(places: List<CurrentWeatherEntity>){
 }
 
 @Composable
-fun WeatherCard(city: String, condition: String, iconRes: Int) {
+fun WeatherCard(city: String, condition: String, iconRes: Int, cityId: Int,  onClick: (cityId: Int) -> Unit ={}) {
     Card(
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(
@@ -166,7 +171,10 @@ fun WeatherCard(city: String, condition: String, iconRes: Int) {
         ),
         modifier = Modifier
             .fillMaxWidth()
-            .height(100.dp),
+            .height(100.dp)
+            .clickable {
+                onClick(cityId)
+            },
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
         Box(

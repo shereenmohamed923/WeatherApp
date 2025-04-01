@@ -116,8 +116,9 @@ fun NavHostContainer(
             composable("setting") {
                 SettingScreen(navController)
             }
-            composable("location") {
-                MapScreen(navController)
+            composable("location/{source}") {backStackEntry ->
+                val source = backStackEntry.arguments?.getString("source") ?: ""
+                MapScreen(navController, source)
             }
         })
 }

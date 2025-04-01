@@ -52,6 +52,16 @@ class FavouriteViewModel(private val weatherRepository: WeatherRepository): View
         }
     }
 
+    fun removeFavouritePlace(cityId: Int){
+        viewModelScope.launch(Dispatchers.IO) {
+            try {
+                weatherRepository.removeFavoriteCity(cityId)
+            }catch (e: Exception){
+                _toastEvent.emit("Couldn't remove your place from favourites ${e.message}")
+            }
+        }
+    }
+
     fun getWeatherData(coord: Coord, isOnline: Boolean, lang: String) {
         viewModelScope.launch(Dispatchers.IO) {
             val data = weatherRepository.getCurrentWeather(coord, isOnline, lang)
@@ -98,6 +108,7 @@ class FavouriteViewModel(private val weatherRepository: WeatherRepository): View
             }
         }
     }
+
 }
 class FavouriteFactory(private val weatherRepository: WeatherRepository): ViewModelProvider.Factory{
     override fun <T : ViewModel> create(modelClass: Class<T>): T {

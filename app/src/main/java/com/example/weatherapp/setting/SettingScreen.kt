@@ -99,7 +99,7 @@ fun SettingScreen(navController: NavController) {
                         context.startActivity(intent)
                     }
                 } else {
-                    navController.navigate("location")
+                    navController.navigate("location/settings")
                 }
             },
             expandedStates = expandedStates,

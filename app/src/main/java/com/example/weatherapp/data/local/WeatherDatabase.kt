@@ -5,12 +5,11 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import com.example.weatherapp.data.local.entities.CurrentWeatherEntity
-import com.example.weatherapp.data.local.entities.FavoriteCityEntity
 import com.example.weatherapp.data.local.entities.ForecastEntity
 
 @Database(
-    entities = [CurrentWeatherEntity::class, ForecastEntity::class, FavoriteCityEntity::class],
-    version = 9
+    entities = [CurrentWeatherEntity::class, ForecastEntity::class],
+    version = 10
 )
 abstract class WeatherDatabase : RoomDatabase() {
 
