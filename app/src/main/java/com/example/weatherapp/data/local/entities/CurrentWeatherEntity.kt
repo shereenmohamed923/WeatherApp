@@ -17,5 +17,7 @@ data class CurrentWeatherEntity(
     val clouds: Int,
     val weatherDescription: String,
     val weatherIcon: String,
-    val lastUpdatedDate: Double
+    val lastUpdatedDate: Double,
+    val isFav: Boolean = false
+
 )

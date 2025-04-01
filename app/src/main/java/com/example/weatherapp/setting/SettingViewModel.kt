@@ -10,22 +10,22 @@ import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 
-class SettingViewModel(private val repository: SettingRepository, private val locationRepository: LocationRepository): ViewModel() {
+class SettingViewModel(private val settingsRepository: SettingRepository, private val locationRepository: LocationRepository): ViewModel() {
 
     fun getSavedLanguage(): String {
-        return repository.getSavedLanguage()
+        return settingsRepository.getSavedLanguage()
     }
 
     fun saveLanguage(languageCode: String) {
-        repository.saveLanguage(languageCode)
+        settingsRepository.saveLanguage(languageCode)
     }
 
     fun setTemperatureUnit(unit: String){
-        repository.saveUnit(unit)
+        settingsRepository.saveUnit(unit)
     }
 
     fun getTemperatureUnit(): String{
-        return repository.getSavedUnit()
+        return settingsRepository.getSavedUnit()
     }
 
     fun saveLocation(lat: Double, lon: Double){

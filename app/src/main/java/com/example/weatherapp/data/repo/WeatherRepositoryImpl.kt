@@ -14,13 +14,8 @@ import com.example.weatherapp.data.model.Main
 import com.example.weatherapp.data.model.Weather
 import com.example.weatherapp.data.model.Wind
 import com.example.weatherapp.data.remote.RemoteDataSource
-import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.asFlow
-import kotlinx.coroutines.flow.flatMapConcat
-import kotlinx.coroutines.flow.forEach
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.take
 
 class WeatherRepositoryImpl private constructor(
     private val remoteDataSource: RemoteDataSource,
@@ -87,12 +82,6 @@ class WeatherRepositoryImpl private constructor(
                 )
             }
         }
-        //        return if(isOnline) {
-//            return remoteDataSource.getForecastWeather(coord, lang)
-//        }
-//        else{
-//            localDataSource.getWeatherForecast()
-//        }
     }
 
     override suspend fun addForecast(forecast: List<ForecastEntity>) {

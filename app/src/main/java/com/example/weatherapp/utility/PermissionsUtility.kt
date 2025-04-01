@@ -19,7 +19,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import java.util.Locale
 
 lateinit var fusedClient : FusedLocationProviderClient
-var addressState = mutableStateOf<String?>("")
 var _locationState = MutableStateFlow<Location?>(null)
 
 fun checkPermissions(context: Context): Boolean{

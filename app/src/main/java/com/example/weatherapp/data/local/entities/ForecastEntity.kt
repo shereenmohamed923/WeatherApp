@@ -3,7 +3,6 @@ package com.example.weatherapp.data.local.entities
 import androidx.room.Entity
 import androidx.room.ForeignKey
 import androidx.room.PrimaryKey
-import com.example.weatherapp.data.model.Coord
 
 @Entity(
     tableName = "forecast_table",
@@ -20,4 +19,5 @@ data class ForecastEntity(
     val temperature: Double,
     val weatherDescription: String,
     val weatherIcon: String,
+    val isFav: Boolean = false
 )

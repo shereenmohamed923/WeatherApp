@@ -24,9 +24,18 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
+import com.example.weatherapp.R
+import com.example.weatherapp.data.local.LocalDataSourceImpl
+import com.example.weatherapp.data.local.WeatherDatabase
+import com.example.weatherapp.data.local.entities.FavoriteCityEntity
 import com.example.weatherapp.data.model.Coord
+import com.example.weatherapp.data.remote.RemoteDataSourceImpl
+import com.example.weatherapp.data.remote.RetrofitHelper
 import com.example.weatherapp.data.repo.LocationRepositoryImpl
 import com.example.weatherapp.data.repo.SettingRepositoryImpl
+import com.example.weatherapp.data.repo.WeatherRepositoryImpl
+import com.example.weatherapp.favourite.FavouriteFactory
+import com.example.weatherapp.favourite.FavouriteViewModel
 import com.example.weatherapp.setting.SettingFactory
 import com.example.weatherapp.setting.SettingViewModel
 import com.example.weatherapp.utility.getAddressFromLocation
@@ -45,6 +54,14 @@ fun MapScreen(navController: NavHostController) {
         factory = SettingFactory(
             SettingRepositoryImpl.getInstance(context),
             LocationRepositoryImpl.getInstance(context)
+        )
+    )
+    val favouritesViewModel: FavouriteViewModel = viewModel(
+        factory = FavouriteFactory(
+            WeatherRepositoryImpl.getInstance(
+                RemoteDataSourceImpl(RetrofitHelper.service), LocalDataSourceImpl(
+                    WeatherDatabase.getInstance(context).weatherDao())
+            )
         )
     )
 
@@ -97,9 +114,17 @@ fun MapScreen(navController: NavHostController) {
             Button(
                 onClick = {
                     Log.i("TAG", "MapScreen: ${selectedLocation.latitude}, ${selectedLocation.longitude}")
-                    settingsViewModel.saveLocation(
-                        lat = selectedLocation.latitude,
-                        lon = selectedLocation.longitude
+//                    settingsViewModel.saveLocation(
+//                        lat = selectedLocation.latitude,
+//                        lon = selectedLocation.longitude
+//                    )
+                    favouritesViewModel.getWeatherData(
+                        coord = Coord(
+                            lat = selectedLocation.latitude,
+                            lon = selectedLocation.longitude
+                        ),
+                        isOnline = true,
+                        lang = "en"
                     )
                     navController.popBackStack()
                 },

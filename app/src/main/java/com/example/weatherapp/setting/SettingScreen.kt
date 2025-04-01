@@ -88,7 +88,7 @@ fun SettingScreen(navController: NavController) {
         ExpandableRow(
             title = stringResource(R.string.location),
             options = listOf("GPS", "Map"),
-            selectedOption = /*settingsViewModel.getSavedLocation(),*/"",
+            selectedOption = "",
             onOptionSelected = { option ->
                 if (option == "GPS") {
                     if (isLocationEnabled(context)) {

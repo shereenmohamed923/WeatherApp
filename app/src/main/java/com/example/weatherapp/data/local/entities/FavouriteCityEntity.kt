@@ -8,6 +8,7 @@ data class FavoriteCityEntity(
     @PrimaryKey val cityId: Int,
     val cityName: String,
     val weatherIcon: String,
-    val lat: String,
-    val lon: String
+    val weatherDescription: String,
+    val lat: Double,
+    val lon: Double
 )

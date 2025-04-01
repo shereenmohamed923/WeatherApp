@@ -13,16 +13,17 @@ import kotlinx.coroutines.flow.Flow
 @Dao
 interface WeatherDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertCurrentWeather(currentWeather: CurrentWeatherEntity)
+    suspend fun insertCurrentWeather(currentWeather: CurrentWeatherEntity) // isFav = false
 
-    @Query("SELECT * FROM current_weather")
+    @Query("SELECT * FROM current_weather") //where isFav = false
     fun getCurrentWeather(): Flow<CurrentWeatherEntity>
 
+    //may delete later
     @Delete
-    suspend fun deleteCurrentWeather(currentWeather: CurrentWeatherEntity)
+    suspend fun deleteCurrentWeather(currentWeather: CurrentWeatherEntity) //where isFav = false
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertForecast(forecast: List<ForecastEntity>)
+    suspend fun insertForecast(forecast: List<ForecastEntity>) //isFav = false
 
     @Query("SELECT * FROM forecast_table ORDER BY dateTime ASC")
     fun getForecast(): Flow<List<ForecastEntity>>
