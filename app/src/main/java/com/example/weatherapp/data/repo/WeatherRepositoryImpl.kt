@@ -88,12 +88,74 @@ class WeatherRepositoryImpl private constructor(
         return localDataSource.getAllFavoriteCities()
     }
 
-    override suspend fun getFavoriteCityCurrent(cityId: Int): Flow<List<CurrentWeatherEntity>> {
-        return  localDataSource.getFavoriteCityCurrent(cityId)
+    override suspend fun getFavoriteCity(coord: Coord, lang: String): Flow<CurrentWeatherEntity> {
+        val currentWeather = remoteDataSource.getCurrentWeather(coord = coord, lang = lang).map { response ->
+            CurrentWeatherEntity(
+                cityId = response.id,
+                cityName = response.name,
+                lat = response.coord.lat,
+                lon = response.coord.lon,
+                temperature = response.main.temp,
+                pressure = response.main.pressure,
+                humidity = response.main.humidity,
+                windSpeed = response.wind.speed,
+                clouds = response.clouds.all,
+                weatherDescription = response.weather[0].description,
+                weatherIcon = response.weather[0].icon,
+                lastUpdatedDate = response.dt,
+            )
+        }
+        return currentWeather
     }
 
-    override suspend fun getFavoriteCityForecast(cityId: Int): Flow<List<ForecastEntity>> {
-        return localDataSource.getFavoriteCityForecast(cityId)
+    override suspend fun getFavoriteCityCurrent(cityId: Int, coord: Coord, isOnline: Boolean, lang:String): Flow<CurrentWeatherEntity> {
+        return if(isOnline) {
+            val currentWeather = remoteDataSource.getCurrentWeather(coord = coord, lang = lang).map { response ->
+                CurrentWeatherEntity(
+                    cityId = response.id,
+                    cityName = response.name,
+                    lat = response.coord.lat,
+                    lon = response.coord.lon,
+                    temperature = response.main.temp,
+                    pressure = response.main.pressure,
+                    humidity = response.main.humidity,
+                    windSpeed = response.wind.speed,
+                    clouds = response.clouds.all,
+                    weatherDescription = response.weather[0].description,
+                    weatherIcon = response.weather[0].icon,
+                    lastUpdatedDate = response.dt,
+                )
+            }
+            return currentWeather
+        }
+        else{
+            localDataSource.getFavoriteCityCurrent(cityId)
+        }
+    }
+
+
+    override suspend fun getFavoriteCityForecast(cityId: Int, coord: Coord, isOnline: Boolean, lang:String): Flow<List<ForecastEntity>> {
+        return if(isOnline) {
+            val convertedData = remoteDataSource.getForecastWeather(coord, lang)
+                .map{   forecastResponse ->
+                    forecastResponse.list.map {forecastItem ->
+                        ForecastEntity(
+                            homeCityId = forecastResponse.city.id,
+                            cityName = forecastResponse.city.name,
+                            lat = forecastResponse.city.coord.lat,
+                            lon = forecastResponse.city.coord.lon,
+                            dateTime = forecastItem.dt_txt,
+                            temperature = forecastItem.main.temp,
+                            weatherDescription = forecastItem.weather[0].description,
+                            weatherIcon = forecastItem.weather[0].icon,
+                        )
+                    }
+                }
+            return convertedData
+        }
+        else{
+            localDataSource.getFavoriteCityForecast(cityId)
+        }
     }
 
     override suspend fun addFavoriteCity(cityCurrentWeather: CurrentWeatherEntity) {

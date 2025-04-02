@@ -55,6 +55,7 @@ import com.example.weatherapp.data.remote.RetrofitHelper
 import com.example.weatherapp.data.repo.WeatherRepositoryImpl
 import com.example.weatherapp.utility.DataResponse
 
+@RequiresApi(Build.VERSION_CODES.O)
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
 fun FavouriteScreen(navController: NavController, favouriteViewModel: FavouriteViewModel) {
@@ -152,9 +153,7 @@ fun FavouritePlaces(places: List<CurrentWeatherEntity>, viewModel: FavouriteView
                     iconRes = R.drawable.cloudy_weather,
                     cityId = place.cityId,
                     onClick = {
-                        viewModel.getWeatherData(Coord(place.lat, place.lon), true, "en")
-                        viewModel.getDailyForecastData(Coord(place.lat, place.lon), true, "en")
-                        viewModel.getHourlyForecastData(Coord(place.lat, place.lon), true, "en")
+                        viewModel.refreshWeatherData(place.cityId, place.lat, place.lon)
                         navController.navigate("favoriteDetails")
                     }
                 ){

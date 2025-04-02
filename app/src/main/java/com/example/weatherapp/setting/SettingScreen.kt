@@ -15,11 +15,16 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateMapOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -35,6 +40,7 @@ import com.example.weatherapp.data.repo.LocationRepositoryImpl
 import com.example.weatherapp.data.repo.SettingRepositoryImpl
 import com.example.weatherapp.location.MapScreen
 import com.example.weatherapp.utility.LocalizationHelper
+import com.example.weatherapp.utility.NetworkUtils
 import com.example.weatherapp.utility.getFreshLocation
 import com.example.weatherapp.utility.isLocationEnabled
 import kotlinx.coroutines.flow.filterNotNull
@@ -59,6 +65,8 @@ fun SettingScreen(navController: NavController) {
         )
     )
 
+    var showDialog by remember { mutableStateOf(false) }
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -67,7 +75,8 @@ fun SettingScreen(navController: NavController) {
         Text(
             text = stringResource(R.string.settings),
             fontSize = 24.sp,
-            fontWeight = FontWeight.Bold
+            fontWeight = FontWeight.Bold,
+            color = Color.White
         )
 
         Spacer(modifier = Modifier.height(16.dp))
@@ -91,12 +100,16 @@ fun SettingScreen(navController: NavController) {
             selectedOption = "",
             onOptionSelected = { option ->
                 if (option == "GPS") {
-                    if (isLocationEnabled(context)) {
-                        getFreshLocation()
-                        settingsViewModel.saveGps()
-                    } else {
-                        val intent = Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS)
-                        context.startActivity(intent)
+                    if(NetworkUtils.isNetworkAvailable(context)){
+                        if (isLocationEnabled(context)) {
+                            getFreshLocation()
+                            settingsViewModel.saveGps()
+                        } else {
+                            val intent = Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS)
+                            context.startActivity(intent)
+                        }
+                    }else{
+                        showDialog = true
                     }
                 } else {
                     navController.navigate("location/settings")
@@ -105,6 +118,21 @@ fun SettingScreen(navController: NavController) {
             expandedStates = expandedStates,
             key = "location"
         )
+        if (showDialog) {
+            AlertDialog(
+                onDismissRequest = { showDialog = false },
+                confirmButton = {
+                    Button(onClick = {
+                        showDialog = false
+                        navController.popBackStack()
+                    }) {
+                        Text("OK")
+                    }
+                },
+                title = { Text("No Internet Connection") },
+                text = { Text("You are not connected to the network. Please connect and try again.") }
+            )
+        }
 
         ExpandableRow(
             title = stringResource(R.string.temperature),
@@ -144,11 +172,12 @@ fun ExpandableRow(
                 .padding(12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(text = title, fontSize = 18.sp, fontWeight = FontWeight.Bold)
+            Text(text = title, fontSize = 18.sp, fontWeight = FontWeight.Bold, color = Color.White)
             Spacer(modifier = Modifier.weight(1f))
             Icon(
                 imageVector = if (expandedStates[key] == true) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
-                contentDescription = "Expand"
+                contentDescription = "Expand",
+                tint = Color.White
             )
         }
 
@@ -167,13 +196,13 @@ fun ExpandableRow(
                             .padding(8.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Text(text = option, fontSize = 16.sp)
+                        Text(text = option, fontSize = 16.sp, color = Color.White)
                         Spacer(modifier = Modifier.weight(1f))
                         if (option == selectedOption) {
                             Icon(
                                 imageVector = Icons.Default.Check,
                                 contentDescription = "Selected",
-                                tint = Color.Blue
+                                tint = Color.White
                             )
                         }
                     }

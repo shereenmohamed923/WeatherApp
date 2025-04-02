@@ -8,4 +8,5 @@ interface SettingRepository {
     fun getSavedLanguage(): String
     fun saveUnit(unit: String)
     fun getSavedUnit(): String
+    fun checkNetworkConnection(): Boolean
 }

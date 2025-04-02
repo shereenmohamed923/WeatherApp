@@ -63,7 +63,7 @@ class HomeViewModel(
                 lat = location.lat
                 lon = location.lon
             }
-            refreshWeatherData(lat, lon, true)
+            refreshWeatherData(lat, lon)
             Log.d(
                 "LocationUpdate",
                 "New location received: $lat, $lon"
@@ -95,6 +95,7 @@ class HomeViewModel(
                 _weatherData.value = DataResponse.Success(updatedData)
                 if (isOnline) {
                     try {
+                        repository.removeCurrentWeather()
                         repository.addCurrentWeather(currentWeather = updatedData)
                     } catch (e: Exception) {
                         Log.e("home viewmodel", "addCurrentWeather: no data to show")
@@ -185,7 +186,7 @@ class HomeViewModel(
     fun refreshWeatherData(
         lat: Double,
         lon: Double,
-        isOnline: Boolean,
+        isOnline: Boolean = settingRepository.checkNetworkConnection(),
         lang: String = settingRepository.getSavedLanguage()
     ) {
         getWeatherData(coord = Coord(lat, lon), isOnline = isOnline, lang = lang)

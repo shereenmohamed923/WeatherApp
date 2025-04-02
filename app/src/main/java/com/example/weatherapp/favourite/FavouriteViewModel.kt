@@ -33,6 +33,9 @@ class FavouriteViewModel(
     private val _favouritePlaces = MutableStateFlow<DataResponse>(DataResponse.Loading)
     val favouritePlaces = _favouritePlaces.asStateFlow()
 
+    private val _favouriteCity = MutableStateFlow<DataResponse>(DataResponse.Loading)
+    val favouriteCity = _favouriteCity.asStateFlow()
+
     private val _weatherData = MutableStateFlow<DataResponse>(DataResponse.Loading)
     val weatherData = _weatherData.asStateFlow()
 
@@ -87,9 +90,34 @@ class FavouriteViewModel(
         }
     }
 
-    fun getWeatherData(coord: Coord, isOnline: Boolean, lang: String) {
+    fun getFavoriteCity(coord: Coord, isOnline: Boolean = settingRepository.checkNetworkConnection(), lang: String = settingRepository.getSavedLanguage()){
         viewModelScope.launch(Dispatchers.IO) {
-            val data = weatherRepository.getCurrentWeather(coord, isOnline, lang)
+            weatherRepository.getFavoriteCity(coord, lang)
+                .map { data ->
+                    data.copy(lastUpdatedDate = getCurrentDateTime(), isFav = true)
+                }
+                .catch { ex ->
+                    _favouriteCity.value = DataResponse.Failure(ex)
+                    _toastEvent.emit("Couldn't fetch data ${ex.message}")
+                }
+                .collect { updatedData ->
+                    Log.d("date update", "Response: $updatedData")
+                    _favouriteCity.value = DataResponse.Success(updatedData)
+                    if(isOnline){
+                        try {
+                            weatherRepository.removeFavoriteCity(updatedData.cityId)
+                            addFavouritePlace(cityCurrentWeather = updatedData)
+                        } catch (e: Exception) {
+                            Log.e("favourite viewmodel", "addCurrentWeather: couldn't add data ${e.message}")
+                        }
+                    }
+                }
+        }
+    }
+
+    fun getWeatherData(cityId: Int, coord: Coord, isOnline: Boolean = settingRepository.checkNetworkConnection(), lang: String = settingRepository.getSavedLanguage()) {
+        viewModelScope.launch(Dispatchers.IO) {
+            val data = weatherRepository.getFavoriteCityCurrent(cityId, coord, isOnline, lang)
                 .map { data ->
                     data.copy(lastUpdatedDate = getCurrentDateTime(), isFav = true)
                 }
@@ -114,10 +142,10 @@ class FavouriteViewModel(
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
-    fun getHourlyForecastData(coord: Coord, isOnline: Boolean, lang: String) {
+    private fun getHourlyForecastData(cityId: Int, coord: Coord, isOnline: Boolean, lang: String) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                weatherRepository.getForecastWeather(coord, isOnline, lang)
+                weatherRepository.getFavoriteCityForecast(cityId, coord, isOnline, lang)
                     .catch { ex ->
                         _hourlyForecastData.value = DataResponse.Failure(ex)
                         _toastEvent.emit("Couldn't fetch data: ${ex.message}")
@@ -158,10 +186,10 @@ class FavouriteViewModel(
     }
 
     @RequiresApi(Build.VERSION_CODES.O)
-    fun getDailyForecastData(coord: Coord, isOnline: Boolean, lang: String) {
+    private fun getDailyForecastData(cityId: Int, coord: Coord, isOnline: Boolean, lang: String) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                weatherRepository.getForecastWeather(coord, isOnline, lang)
+                weatherRepository.getFavoriteCityForecast(cityId, coord, isOnline, lang)
                     .catch { ex ->
                         _dailyForecastData.value = DataResponse.Failure(ex)
                         _toastEvent.emit("Couldn't fetch data: ${ex.message}")
@@ -192,14 +220,15 @@ class FavouriteViewModel(
 
     @RequiresApi(Build.VERSION_CODES.O)
     fun refreshWeatherData(
+        cityId: Int,
         lat: Double,
         lon: Double,
-        isOnline: Boolean,
+        isOnline: Boolean = settingRepository.checkNetworkConnection(),
         lang: String = settingRepository.getSavedLanguage()
     ) {
-        getWeatherData(coord = Coord(lat, lon), isOnline = isOnline, lang = lang)
-        getDailyForecastData(coord = Coord(lat, lon), isOnline = isOnline, lang = lang)
-        getHourlyForecastData(coord = Coord(lat, lon), isOnline = isOnline, lang = lang)
+        getWeatherData(cityId, coord = Coord(lat, lon), isOnline = isOnline, lang = lang)
+        getDailyForecastData(cityId, coord = Coord(lat, lon), isOnline = isOnline, lang = lang)
+        getHourlyForecastData(cityId, coord = Coord(lat, lon), isOnline = isOnline, lang = lang)
     }
 
 

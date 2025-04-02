@@ -16,7 +16,7 @@ interface LocalDataSource {
 
     suspend fun insertFavoriteCity(cityCurrentWeather: CurrentWeatherEntity)
     suspend fun getAllFavoriteCities(): Flow<List<CurrentWeatherEntity>>
-    suspend fun getFavoriteCityCurrent(cityId: Int): Flow<List<CurrentWeatherEntity>>
+    suspend fun getFavoriteCityCurrent(cityId: Int): Flow<CurrentWeatherEntity>
     suspend fun getFavoriteCityForecast(cityId: Int): Flow<List<ForecastEntity>>
     suspend fun deleteFavoriteCity(cityId: Int)
 }

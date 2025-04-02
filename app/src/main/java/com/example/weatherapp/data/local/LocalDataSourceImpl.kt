@@ -34,7 +34,7 @@ class LocalDataSourceImpl(private val dao: WeatherDao): LocalDataSource {
         return dao.getAllFavoriteCities()
     }
 
-    override suspend fun getFavoriteCityCurrent(cityId: Int): Flow<List<CurrentWeatherEntity>> {
+    override suspend fun getFavoriteCityCurrent(cityId: Int): Flow<CurrentWeatherEntity> {
         return dao.getFavoriteCityCurrent(cityId)
     }
 

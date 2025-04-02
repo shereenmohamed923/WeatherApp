@@ -15,8 +15,9 @@ interface WeatherRepository {
     suspend fun addForecast(forecast: List<ForecastEntity>)
 
     suspend fun getAllFavoriteCities(): Flow<List<CurrentWeatherEntity>>
-    suspend fun getFavoriteCityCurrent(cityId: Int): Flow<List<CurrentWeatherEntity>>
-    suspend fun getFavoriteCityForecast(cityId: Int): Flow<List<ForecastEntity>>
+    suspend fun getFavoriteCity(coord: Coord, lang:String): Flow<CurrentWeatherEntity>
+    suspend fun getFavoriteCityCurrent(cityId: Int, coord: Coord, isOnline: Boolean, lang:String): Flow<CurrentWeatherEntity>
+    suspend fun getFavoriteCityForecast(cityId: Int, coord: Coord, isOnline: Boolean, lang:String): Flow<List<ForecastEntity>>
     suspend fun addFavoriteCity(cityCurrentWeather: CurrentWeatherEntity)
     suspend fun removeFavoriteCity(cityId: Int)
 

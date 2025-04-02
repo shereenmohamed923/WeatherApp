@@ -33,7 +33,7 @@ interface WeatherDao {
 
     //add function to get fav city details (cityId) where isFav = true && id = cityId
     @Query("SELECT * FROM current_weather WHERE isFav = 1 AND cityId = :cityId")
-    fun getFavoriteCityCurrent(cityId: Int): Flow<List<CurrentWeatherEntity>> //where isFav = true
+    fun getFavoriteCityCurrent(cityId: Int): Flow<CurrentWeatherEntity> //where isFav = true
 
     @Query("SELECT * FROM forecast_table WHERE isFav = 1 AND homeCityId = :cityId")
     fun getFavoriteCityForecast(cityId: Int): Flow<List<ForecastEntity>> //where isFav = true
