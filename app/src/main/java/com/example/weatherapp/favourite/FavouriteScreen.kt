@@ -3,7 +3,9 @@ package com.example.weatherapp.favourite
 
 import android.annotation.SuppressLint
 import android.content.Context
+import android.os.Build
 import android.util.Log
+import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -19,6 +21,10 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -43,6 +49,7 @@ import com.example.weatherapp.R
 import com.example.weatherapp.data.local.LocalDataSourceImpl
 import com.example.weatherapp.data.local.WeatherDatabase
 import com.example.weatherapp.data.local.entities.CurrentWeatherEntity
+import com.example.weatherapp.data.model.Coord
 import com.example.weatherapp.data.remote.RemoteDataSourceImpl
 import com.example.weatherapp.data.remote.RetrofitHelper
 import com.example.weatherapp.data.repo.WeatherRepositoryImpl
@@ -50,20 +57,9 @@ import com.example.weatherapp.utility.DataResponse
 
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
 @Composable
-fun FavouriteScreen(navController: NavController) {
-
-    val context: Context = LocalContext.current
-    val favouriteViewModel: FavouriteViewModel = viewModel(
-        factory = FavouriteFactory(
-            WeatherRepositoryImpl.getInstance(
-                RemoteDataSourceImpl(RetrofitHelper.service), LocalDataSourceImpl(
-                    WeatherDatabase.getInstance(context).weatherDao())
-            )
-        )
-    )
+fun FavouriteScreen(navController: NavController, favouriteViewModel: FavouriteViewModel) {
 
     favouriteViewModel.getAllFavouritePlaces()
-   // val currentWeatherState = favouriteViewModel.weatherData.collectAsState()
 
     val favouritePlacesState = favouriteViewModel.favouritePlaces.collectAsState()
 
@@ -121,7 +117,8 @@ fun FavouriteScreen(navController: NavController) {
                                         val favouritePlaces = state.data as List<CurrentWeatherEntity>
                                         FavouritePlaces(
                                             places = favouritePlaces,
-                                            favouriteViewModel
+                                            viewModel = favouriteViewModel,
+                                            navController
                                         )
                                         Log.i("favourite", "favouritePlaces: $favouritePlaces")
                                     }
@@ -140,8 +137,9 @@ fun FavouriteScreen(navController: NavController) {
     )
 }
 
+@RequiresApi(Build.VERSION_CODES.O)
 @Composable
-fun FavouritePlaces(places: List<CurrentWeatherEntity>, viewModel: FavouriteViewModel){
+fun FavouritePlaces(places: List<CurrentWeatherEntity>, viewModel: FavouriteViewModel, navController: NavController){
     Column {
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
@@ -152,7 +150,13 @@ fun FavouritePlaces(places: List<CurrentWeatherEntity>, viewModel: FavouriteView
                     city = place.cityName,
                     condition = place.weatherDescription,
                     iconRes = R.drawable.cloudy_weather,
-                    cityId = place.cityId
+                    cityId = place.cityId,
+                    onClick = {
+                        viewModel.getWeatherData(Coord(place.lat, place.lon), true, "en")
+                        viewModel.getDailyForecastData(Coord(place.lat, place.lon), true, "en")
+                        viewModel.getHourlyForecastData(Coord(place.lat, place.lon), true, "en")
+                        navController.navigate("favoriteDetails")
+                    }
                 ){
                     viewModel.removeFavouritePlace(place.cityId)
                 }
@@ -163,7 +167,7 @@ fun FavouritePlaces(places: List<CurrentWeatherEntity>, viewModel: FavouriteView
 }
 
 @Composable
-fun WeatherCard(city: String, condition: String, iconRes: Int, cityId: Int,  onClick: (cityId: Int) -> Unit ={}) {
+fun WeatherCard(city: String, condition: String, iconRes: Int, cityId: Int, onClick: () -> Unit,  onDelete: (cityId: Int) -> Unit ={}) {
     Card(
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(
@@ -173,7 +177,7 @@ fun WeatherCard(city: String, condition: String, iconRes: Int, cityId: Int,  onC
             .fillMaxWidth()
             .height(100.dp)
             .clickable {
-                onClick(cityId)
+                onClick()
             },
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
@@ -210,6 +214,13 @@ fun WeatherCard(city: String, condition: String, iconRes: Int, cityId: Int,  onC
                         .size(80.dp),
                     contentScale = ContentScale.Fit
                 )
+                Button(
+                    onClick = { onDelete(cityId) }
+                ) { Icon(
+                    imageVector = Icons.Default.Delete,
+                    contentDescription = "",
+                    tint = Color.Red
+                ) }
             }
         }
 

@@ -15,9 +15,9 @@ data class ForecastEntity(
     val cityName: String,
     val lat: Double,
     val lon: Double,
-    val dateTime: String,
-    val temperature: Double,
+    var dateTime: String,
+    var temperature: Double,
     val weatherDescription: String,
     val weatherIcon: String,
-    val isFav: Boolean = false
+    var isFav: Boolean = false
 )

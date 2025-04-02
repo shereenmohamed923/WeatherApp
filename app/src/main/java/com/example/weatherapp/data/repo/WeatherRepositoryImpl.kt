@@ -21,24 +21,29 @@ class WeatherRepositoryImpl private constructor(
     private val localDataSource: LocalDataSource
 ): WeatherRepository {
 
-    override suspend fun getCurrentWeather(coord: Coord, isOnline: Boolean, lang:String): Flow<CurrentWeatherResponse> {
+    override suspend fun getCurrentWeather(coord: Coord, isOnline: Boolean, lang:String): Flow<CurrentWeatherEntity> {
         return if(isOnline) {
-            remoteDataSource.getCurrentWeather(coord = coord, lang = lang)
-        }
-        else{
-            val currentWeather = localDataSource.getCurrentWeather().map { currentWeatherEntity ->
-                CurrentWeatherResponse(
-                    id = currentWeatherEntity.cityId,
-                    coord = Coord(currentWeatherEntity.lat, currentWeatherEntity.lon),
-                    main = Main(currentWeatherEntity.temperature, currentWeatherEntity.humidity, currentWeatherEntity.pressure),
-                    clouds = Clouds(currentWeatherEntity.clouds),
-                    weather = listOf(Weather(currentWeatherEntity.weatherIcon, currentWeatherEntity.weatherDescription)) ,
-                    name = currentWeatherEntity.cityName,
-                    wind = Wind(currentWeatherEntity.windSpeed),
-                    dt = currentWeatherEntity.lastUpdatedDate
+            val currentWeather = remoteDataSource.getCurrentWeather(coord = coord, lang = lang).map { response ->
+                CurrentWeatherEntity(
+                    cityId = response.id,
+                    cityName = response.name,
+                    lat = response.coord.lat,
+                    lon = response.coord.lon,
+                    temperature = response.main.temp,
+                    pressure = response.main.pressure,
+                    humidity = response.main.humidity,
+                    windSpeed = response.wind.speed,
+                    clouds = response.clouds.all,
+                    weatherDescription = response.weather[0].description,
+                    weatherIcon = response.weather[0].icon,
+                    lastUpdatedDate = response.dt,
                 )
             }
-                return currentWeather
+            return currentWeather
+        }
+        else{
+            localDataSource.getCurrentWeather()
+
         }
     }
 
@@ -50,36 +55,27 @@ class WeatherRepositoryImpl private constructor(
         return localDataSource.deleteCurrentWeather()
     }
 
-    override suspend fun getForecastWeather(coord: Coord, isOnline: Boolean, lang:String): Flow<ForecastResponse> {
+    override suspend fun getForecastWeather(coord: Coord, isOnline: Boolean, lang:String): Flow<List<ForecastEntity>> {
         return if(isOnline) {
-            remoteDataSource.getForecastWeather(coord, lang)
-        }
-        else{
-            localDataSource.getForecast().map { forecastList ->
-                if (forecastList.isEmpty()) {
-                    return@map ForecastResponse(city = City(0, "", Coord(0.0, 0.0)), list = emptyList())
-                }
-                val firstEntity = forecastList.firstOrNull() ?: return@map ForecastResponse(
-                    city = City(0, "Unknown", Coord(0.0, 0.0)),
-                    list = emptyList()
-                )
-                val city = City(
-                    id = firstEntity.homeCityId,
-                    name = firstEntity.cityName,
-                    coord = Coord(firstEntity.lat, firstEntity.lon)
-                )
-                val forecastItems = forecastList.map { entity ->
-                    ForecastItem(
-                        dt_txt = entity.dateTime,
-                        weather = listOf(Weather(entity.weatherIcon, entity.weatherDescription)),
-                        main = Main(entity.temperature, 0, 0)
+            val convertedData = remoteDataSource.getForecastWeather(coord, lang)
+            .map{   forecastResponse ->
+                forecastResponse.list.map {forecastItem ->
+                    ForecastEntity(
+                        homeCityId = forecastResponse.city.id,
+                        cityName = forecastResponse.city.name,
+                        lat = forecastResponse.city.coord.lat,
+                        lon = forecastResponse.city.coord.lon,
+                        dateTime = forecastItem.dt_txt,
+                        temperature = forecastItem.main.temp,
+                        weatherDescription = forecastItem.weather[0].description,
+                        weatherIcon = forecastItem.weather[0].icon,
                     )
                 }
-                ForecastResponse(
-                    city = city,
-                    list = forecastItems
-                )
             }
+            return convertedData
+        }
+        else{
+            localDataSource.getForecast()
         }
     }
 

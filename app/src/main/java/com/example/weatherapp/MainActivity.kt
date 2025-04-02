@@ -28,13 +28,24 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.weatherapp.alert.AlertScreen
+import com.example.weatherapp.data.local.LocalDataSourceImpl
+import com.example.weatherapp.data.local.WeatherDatabase
+import com.example.weatherapp.data.remote.RemoteDataSourceImpl
+import com.example.weatherapp.data.remote.RetrofitHelper
+import com.example.weatherapp.data.repo.SettingRepositoryImpl
+import com.example.weatherapp.data.repo.WeatherRepositoryImpl
+import com.example.weatherapp.favourite.FavoriteDetailsScreen
+import com.example.weatherapp.favourite.FavouriteFactory
 import com.example.weatherapp.favourite.FavouriteScreen
+import com.example.weatherapp.favourite.FavouriteViewModel
 import com.example.weatherapp.home.HomeScreen
 import com.example.weatherapp.location.MapScreen
 import com.example.weatherapp.setting.SettingScreen
@@ -49,6 +60,17 @@ class MainActivity : ComponentActivity() {
     @SuppressLint("SuspiciousIndentation")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        val favouriteViewModel: FavouriteViewModel = ViewModelProvider(this,
+            factory = FavouriteFactory(
+                WeatherRepositoryImpl.getInstance(
+                    RemoteDataSourceImpl(RetrofitHelper.service), LocalDataSourceImpl(
+                        WeatherDatabase.getInstance(this).weatherDao())
+                ),
+                SettingRepositoryImpl.getInstance(this)
+            )
+        ).get(FavouriteViewModel::class.java)
+
         fusedClient = LocationServices.getFusedLocationProviderClient(this)
 
         enableEdgeToEdge()
@@ -84,7 +106,7 @@ class MainActivity : ComponentActivity() {
                                     )
                                 )
                         )
-                        NavHostContainer(navController = navController, padding = padding)
+                        NavHostContainer(navController = navController, padding = padding, favouriteViewModel)
                     }
                 }
             )
@@ -96,7 +118,8 @@ class MainActivity : ComponentActivity() {
 @Composable
 fun NavHostContainer(
     navController: NavHostController,
-    padding: PaddingValues
+    padding: PaddingValues,
+    favouriteViewModel: FavouriteViewModel
 ) {
     NavHost(
         navController = navController,
@@ -108,7 +131,7 @@ fun NavHostContainer(
                 HomeScreen()
             }
             composable("favourite") {
-                FavouriteScreen(navController)
+                FavouriteScreen(navController, favouriteViewModel)
             }
             composable("alert") {
                 AlertScreen()
@@ -119,6 +142,9 @@ fun NavHostContainer(
             composable("location/{source}") {backStackEntry ->
                 val source = backStackEntry.arguments?.getString("source") ?: ""
                 MapScreen(navController, source)
+            }
+            composable("favoriteDetails") {
+                FavoriteDetailsScreen(favouriteViewModel)
             }
         })
 }

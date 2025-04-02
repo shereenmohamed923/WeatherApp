@@ -20,9 +20,11 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
+import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.launch
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -82,38 +84,22 @@ class HomeViewModel(
         viewModelScope.launch(Dispatchers.IO) {
             val data = repository.getCurrentWeather(coord, isOnline, lang)
                 .map { data ->
-                    data.copy(dt = getCurrentDateTime())
+                    data.copy(lastUpdatedDate = getCurrentDateTime())
                 }
                 .catch { ex ->
                     _weatherData.value = DataResponse.Failure(ex)
                     _toastEvent.emit("Couldn't fetch data ${ex.message}")
                 }
-            if (isOnline) {
-                val convertedData = data.map { response ->
-                    CurrentWeatherEntity(
-                        cityId = response.id,
-                        cityName = response.name,
-                        lat = response.coord.lat,
-                        lon = response.coord.lon,
-                        temperature = response.main.temp,
-                        pressure = response.main.pressure,
-                        humidity = response.main.humidity,
-                        windSpeed = response.wind.speed,
-                        clouds = response.clouds.all,
-                        weatherDescription = response.weather[0].description,
-                        weatherIcon = response.weather[0].icon,
-                        lastUpdatedDate = getCurrentDateTime()
-                    )
-                }
-                try {
-                    repository.addCurrentWeather(currentWeather = convertedData.first())
-                } catch (e: Exception) {
-                    Log.e("home viewmodel", "addCurrentWeather: no data to show")
-                }
-            }
             data.collect { updatedData ->
-                Log.d("date update", "Response: ${updatedData.dt}")
+                Log.d("date update", "Response: $updatedData")
                 _weatherData.value = DataResponse.Success(updatedData)
+                if (isOnline) {
+                    try {
+                        repository.addCurrentWeather(currentWeather = updatedData)
+                    } catch (e: Exception) {
+                        Log.e("home viewmodel", "addCurrentWeather: no data to show")
+                    }
+                }
             }
         }
     }
@@ -126,39 +112,29 @@ class HomeViewModel(
                     .catch { ex ->
                         _hourlyForecastData.value = DataResponse.Failure(ex)
                         _toastEvent.emit("Couldn't fetch data: ${ex.message}")
-                    }
-                    .map { forecastResponse ->
+                    }.map { forecastResponse ->
                         if (isOnline) {
-                            val convertedData = forecastResponse.list.map {forecastItem ->
-                                ForecastEntity(
-                                    homeCityId = forecastResponse.city.id,
-                                    cityName = forecastResponse.city.name,
-                                    lat = forecastResponse.city.coord.lat,
-                                    lon = forecastResponse.city.coord.lon,
-                                    dateTime = forecastItem.dt_txt,
-                                    temperature = forecastItem.main.temp,
-                                    weatherDescription = forecastItem.weather[0].description,
-                                    weatherIcon = forecastItem.weather[0].icon,
-                                )
+                            try {
+                                repository.addForecast(forecast = forecastResponse)
+                            } catch (e: Exception) {
+                                Log.e("home viewmodel", "addCurrentWeather: no data to show")
                             }
-                            repository.addForecast(convertedData)
                         }
-
-                        val updatedList = forecastResponse.list
+                        forecastResponse
                             .take(8)
                             .map { item ->
-                                val formattedTime = formatHourlyTime(item.dt_txt)
-                                val updatedTime = if (settingRepository.getSavedLanguage() == "ar") {
-                                    val num = formatNumber(formattedTime.split(" ")[0].toInt())
-                                    val period = if (formattedTime.split(" ")[1] == "AM") "ص" else "م"
-                                    "$num $period"
-                                } else {
-                                    formattedTime
-                                }
-                                item.copy(dt_txt = updatedTime)
+                                val formattedTime = formatHourlyTime(item.dateTime)
+                                val updatedTime =
+                                    if (settingRepository.getSavedLanguage() == "ar") {
+                                        val num = formatNumber(formattedTime.split(" ")[0].toInt())
+                                        val period =
+                                            if (formattedTime.split(" ")[1] == "AM") "ص" else "م"
+                                        "$num $period"
+                                    } else {
+                                        formattedTime
+                                    }
+                                item.copy(dateTime = updatedTime)
                             }
-
-                        forecastResponse.copy(list = updatedList)
                     }
                     .collect { updatedForecast ->
                         _hourlyForecastData.value = DataResponse.Success(updatedForecast)
@@ -181,25 +157,24 @@ class HomeViewModel(
                         _dailyForecastData.value = DataResponse.Failure(ex)
                         _toastEvent.emit("Couldn't fetch data: ${ex.message}")
                     }
-                    .collect { forecastResponse ->
-                        val groupedByDate = forecastResponse.list
-                            .groupBy { item -> item.dt_txt.substring(0, 10) }
-
+                    .map { forecastList ->
+                        val groupedByDate = forecastList.groupBy { it.dateTime.substring(0, 10) }
                         val dailyAverages = groupedByDate.map { (date, items) ->
-                            val avgTemp = items.map { it.main.temp }.average()
-                            ForecastItem(
-                                dt_txt = formatDailyTime(date),
-                                main = items.first().main.copy(temp = avgTemp),
-                                weather = items.first().weather
-                            )
-                        }
-                        val fiveDayForecast = dailyAverages.drop(1).take(5)
+                            val avgTemp = items.map { it.temperature }.average()
 
-                        val updatedForecast = forecastResponse.copy(list = fiveDayForecast)
-                        _dailyForecastData.value = DataResponse.Success(updatedForecast)
+                            val firstItem = items.first().apply {
+                                dateTime = formatDailyTime(date)
+                                temperature = avgTemp
+                            }
+                            firstItem
+                        }
+                        dailyAverages.drop(1).take(5)
+                    }
+                    .collect { transformedList ->
+                        _dailyForecastData.value = DataResponse.Success(transformedList)
                     }
             } catch (ex: Exception) {
-                _weatherData.value = DataResponse.Failure(ex)
+                _dailyForecastData.value = DataResponse.Failure(ex)
                 _toastEvent.emit("Couldn't fetch data ${ex.message}")
             }
 

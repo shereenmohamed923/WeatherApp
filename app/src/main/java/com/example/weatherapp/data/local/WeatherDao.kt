@@ -22,7 +22,7 @@ interface WeatherDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertForecast(forecast: List<ForecastEntity>) //isFav = false
 
-    @Query("SELECT * FROM forecast_table WHERE isFav = 0 ORDER BY dateTime ASC") //where isFav = false
+    @Query("SELECT * FROM forecast_table WHERE isFav = 0") //where isFav = false
     fun getForecast(): Flow<List<ForecastEntity>>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)

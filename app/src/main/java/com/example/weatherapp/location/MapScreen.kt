@@ -59,7 +59,8 @@ fun MapScreen(navController: NavHostController, source: String) {
             WeatherRepositoryImpl.getInstance(
                 RemoteDataSourceImpl(RetrofitHelper.service), LocalDataSourceImpl(
                     WeatherDatabase.getInstance(context).weatherDao())
-            )
+            ),
+            SettingRepositoryImpl.getInstance(context)
         )
     )
 

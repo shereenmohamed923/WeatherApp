@@ -54,6 +54,8 @@ import com.example.weatherapp.My_LOCATION_PERMISSION_ID
 import com.example.weatherapp.R
 import com.example.weatherapp.data.local.LocalDataSourceImpl
 import com.example.weatherapp.data.local.WeatherDatabase
+import com.example.weatherapp.data.local.entities.CurrentWeatherEntity
+import com.example.weatherapp.data.local.entities.ForecastEntity
 import com.example.weatherapp.data.model.CurrentWeatherResponse
 import com.example.weatherapp.data.model.ForecastItem
 import com.example.weatherapp.data.model.ForecastResponse
@@ -123,16 +125,16 @@ fun HomeScreen() {
             }
             is DataResponse.Success -> {
 
-                if (state.data is CurrentWeatherResponse) {
+                if (state.data is CurrentWeatherEntity) {
                     val currentWeather = state.data
                     Text(
-                        text = currentWeather.name,
+                        text = currentWeather.cityName,
                         fontSize = 24.sp,
                         color = Color.White,
                         fontWeight = FontWeight.Bold
                     )
                     Text(
-                        text = currentWeather.weather[0].description,
+                        text = currentWeather.weatherDescription,
                         fontSize = 16.sp,
                         color = Color.White
                     )
@@ -146,7 +148,7 @@ fun HomeScreen() {
                         contentScale = ContentScale.Fit
                     )
                     val (convertedTemp, unitSymbol) = UnitHelper().convertTemperature(
-                        currentWeather.main.temp,
+                        currentWeather.temperature,
                         temperatureUnit,
                         context
                     )
@@ -157,7 +159,7 @@ fun HomeScreen() {
                         fontWeight = FontWeight.Bold
                     )
                     Text(
-                        text = formatCurrentDateTime(currentWeather.dt),
+                        text = formatCurrentDateTime(currentWeather.lastUpdatedDate),
                         fontSize = 16.sp,
                         color = Color.White.copy(alpha = 0.7f)
                     )
@@ -168,10 +170,10 @@ fun HomeScreen() {
                     when (val hourlyForecastWeatherState = hourlyForecastState.value) {
                         is DataResponse.Loading -> {}
                         is DataResponse.Success -> {
-                            if (hourlyForecastWeatherState.data is ForecastResponse) {
+                            if (hourlyForecastWeatherState.data is List<*>) {
                                 Log.i("HomeScreen", "ForecastResponse: ")
-                                val forecastWeather = hourlyForecastWeatherState.data
-                                HourlyForecast(forecastWeather.list, temperatureUnit)
+                                val forecastWeather = hourlyForecastWeatherState.data as List<ForecastEntity>
+                                HourlyForecast(forecastWeather, temperatureUnit)
                             }
                         }
 
@@ -190,9 +192,9 @@ fun HomeScreen() {
                     when (val dailyForecastWeatherState = dailyForecastState.value) {
                         is DataResponse.Loading -> {}
                         is DataResponse.Success -> {
-                            if (dailyForecastWeatherState.data is ForecastResponse) {
-                                val forecastWeather = dailyForecastWeatherState.data
-                                DailyForecast(forecastWeather.list, temperatureUnit)
+                            if (dailyForecastWeatherState.data is List<*>) {
+                                val forecastWeather = dailyForecastWeatherState.data as List<ForecastEntity>
+                                DailyForecast(forecastWeather, temperatureUnit)
                             }
                         }
 
@@ -224,7 +226,7 @@ fun HomeScreen() {
 }
 
 @Composable
-fun WeatherDetails(currentWeather: CurrentWeatherResponse) {
+fun WeatherDetails(currentWeather: CurrentWeatherEntity) {
     Row(
         modifier = Modifier
             .width(350.dp)
@@ -233,22 +235,22 @@ fun WeatherDetails(currentWeather: CurrentWeatherResponse) {
         horizontalArrangement = Arrangement.SpaceEvenly
     ) {
         WeatherDetailItem(
-            value = formatNumber(convertPressureToPercentage(currentWeather.main.pressure))+ "%" ,
+            value = formatNumber(convertPressureToPercentage(currentWeather.pressure))+ "%" ,
             label = stringResource(R.string.pressure),
             image = R.drawable.pressure
         )
         WeatherDetailItem(
-            value = formatNumber(currentWeather.main.humidity) + "%",
+            value = formatNumber(currentWeather.humidity) + "%",
             label = stringResource(R.string.humidity),
             image = R.drawable.humidity
         )
         WeatherDetailItem(
-            value = formatNumber(currentWeather.wind.speed.toInt())  + " " + stringResource(R.string.meter_per_sec),
+            value = formatNumber(currentWeather.windSpeed.toInt())  + " " + stringResource(R.string.meter_per_sec),
             label = stringResource(R.string.wind_speed),
             image = R.drawable.wind
         )
         WeatherDetailItem(
-            value = formatNumber(currentWeather.clouds.all) + "%",
+            value = formatNumber(currentWeather.clouds) + "%",
             label = stringResource(R.string.cloudiness),
             image = R.drawable.cloudiness
         )
@@ -274,7 +276,7 @@ fun WeatherDetailItem(value: String, label: String, image: Int) {
 }
 
 @Composable
-fun HourlyForecast(forecast: List<ForecastItem>, temperatureUnit: String) {
+fun HourlyForecast(forecast: List<ForecastEntity>, temperatureUnit: String) {
     val context: Context = LocalContext.current
     Column(
         horizontalAlignment = Alignment.Start
@@ -290,12 +292,12 @@ fun HourlyForecast(forecast: List<ForecastItem>, temperatureUnit: String) {
         LazyRow(modifier = Modifier.fillMaxWidth()) {
             items(forecast) { item ->
                 val (convertedTemp, unitSymbol) = UnitHelper().convertTemperature(
-                    item.main.temp,
+                    item.temperature,
                     temperatureUnit,
                     context
                 )
                 HourlyForecastItem(
-                    time = item.dt_txt,
+                    time = item.dateTime,
                     temperature = "${formatNumber(convertedTemp)} $unitSymbol",
                     iconRes = R.drawable.cloudy_weather
                 )
@@ -364,7 +366,7 @@ fun HourlyForecastItem(time: String, temperature: String, iconRes: Int) {
 
 
 @Composable
-fun DailyForecast(forecast: List<ForecastItem>, temperatureUnit: String) {
+fun DailyForecast(forecast: List<ForecastEntity>, temperatureUnit: String) {
     val context: Context = LocalContext.current
     Column(
         horizontalAlignment = Alignment.Start,
@@ -380,14 +382,14 @@ fun DailyForecast(forecast: List<ForecastItem>, temperatureUnit: String) {
         LazyRow(modifier = Modifier.fillMaxWidth()) {
             items(forecast) { item ->
                 val (convertedTemp, unitSymbol) = UnitHelper().convertTemperature(
-                    item.main.temp,
+                    item.temperature,
                     temperatureUnit,
                     context
                 )
                 DailyForecastItem(
-                    item.dt_txt,
+                    item.dateTime,
                     "${formatNumber(convertedTemp)} $unitSymbol",
-                    item.weather[0].description,
+                    item.weatherDescription,
                     R.drawable.cloudy_weather
                 )
             }
