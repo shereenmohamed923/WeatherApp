@@ -84,7 +84,7 @@ fun SettingScreen(navController: NavController) {
             selectedOption = settingsViewModel.getSavedLanguage(),
             onOptionSelected = { lang ->
                 val langHelper = LocalizationHelper(context)
-                val langCode = langHelper.setLanguage(if (lang == "English") "en" else "ar")
+                val langCode = langHelper.setLanguage(if (lang == "English" || lang == "الانجليزية") "en" else "ar")
                 settingsViewModel.saveLanguage(langCode)
             },
             expandedStates = expandedStates,
@@ -134,21 +134,17 @@ fun SettingScreen(navController: NavController) {
         ExpandableRow(
             title = stringResource(R.string.temperature),
             options = listOf(stringResource(R.string.kelvin_title), stringResource(R.string.celsius_title), stringResource(R.string.fahrenheit_title)),
-            selectedOption = settingsViewModel.getSavedTemperatureUnit(),
-            onOptionSelected = { unit -> settingsViewModel.saveTemperatureUnit(unit) },
+            selectedOption = ""/*settingsViewModel.getSavedTemperatureUnit()*/,
+            onOptionSelected = { unit ->
+                if(unit == "Fahrenheit degree" || unit == "درجة فهرنهايت"){
+                    settingsViewModel.saveWindSpeedUnit("miles/hour")
+                }else{
+                    settingsViewModel.saveWindSpeedUnit("meter/second")
+                }
+                settingsViewModel.saveTemperatureUnit(unit) },
             expandedStates = expandedStates,
             key = "temperature"
         )
-
-        // Wind Speed Unit Selection
-//        ExpandableRow(
-//            title = stringResource(R.string.wind_speed),
-//            options = listOf("meter/sec", "miles/hour"),
-//            selectedOption = viewModel.getSavedWindSpeedUnit(),
-//            onOptionSelected = { unit -> viewModel.saveWindSpeedUnit(unit) },
-//            expandedStates = expandedStates,
-//            key = "wind"
-//        )
     }
 }
 

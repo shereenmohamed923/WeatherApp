@@ -6,10 +6,7 @@ import androidx.annotation.RequiresApi
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
-import com.example.weatherapp.data.local.entities.CurrentWeatherEntity
-import com.example.weatherapp.data.local.entities.ForecastEntity
 import com.example.weatherapp.data.model.Coord
-import com.example.weatherapp.data.model.ForecastItem
 import com.example.weatherapp.data.repo.LocationRepository
 import com.example.weatherapp.data.repo.SettingRepository
 import com.example.weatherapp.data.repo.WeatherRepository
@@ -20,11 +17,9 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.drop
 import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
-import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.launch
 
 @RequiresApi(Build.VERSION_CODES.O)
@@ -42,8 +37,11 @@ class HomeViewModel(
     private val _hourlyForecastData = MutableStateFlow<DataResponse>(DataResponse.Loading)
     val hourlyForecastData = _hourlyForecastData.asStateFlow()
 
-    private val _temperatureUnit = MutableStateFlow(settingRepository.getSavedUnit())
+    private val _temperatureUnit = MutableStateFlow(settingRepository.getSavedTemperatureUnit())
     val temperatureUnit = _temperatureUnit.asStateFlow()
+
+    private val _windSpeedUnit = MutableStateFlow(settingRepository.getSavedWindSpeedUnit())
+    val windSpeedUnit = _windSpeedUnit.asStateFlow()
 
     private val _toastEvent = MutableSharedFlow<String>()
     val toastEvent = _toastEvent.asSharedFlow()
@@ -72,11 +70,19 @@ class HomeViewModel(
 
         viewModelScope.launch {
             val unit: String = try {
-                settingRepository.unitFlow.filterNotNull().first()
+                settingRepository.temperatureUnitFlow.filterNotNull().first()
             } catch (e: Exception) {
                 "Kelvin"
             }
             _temperatureUnit.value = unit
+        }
+        viewModelScope.launch {
+            val unit: String = try {
+                settingRepository.windSpeedUnitFlow.filterNotNull().first()
+            } catch (e: Exception) {
+                "meter/second"
+            }
+            _windSpeedUnit.value = unit
         }
     }
 

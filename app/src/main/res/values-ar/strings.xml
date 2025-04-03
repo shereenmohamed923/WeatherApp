@@ -18,7 +18,7 @@
     <string name="cloudiness">الغيوم</string>
     <string name="humidity">الرطوبة</string>
     <string name="pressure">ضغط الجو</string>
-    <string name="meter_per_sec">م/س</string>
+    <string name="meter_per_sec">م/ث</string>
     <string name="mile_per_hour">م/س</string>
     <string name="next">التالي</string>
     <string name="weather_alert">منبه الطقس</string>
@@ -30,5 +30,7 @@
     <string name="kelvin_title">درجة كلفن</string>
     <string name="celsius_title">درجة مئوية</string>
     <string name="fahrenheit_title">درجة فهرنهايت</string>
+    <string name="miles_title">ميل/الساعة</string>
+    <string name="meters_title">متر/الثانية</string>
     <string name="no_network_description">انت غير متصل بالانترنت برجاء الاتصال بالانترنت و المحاولة مرة اخري</string>
 </resources>

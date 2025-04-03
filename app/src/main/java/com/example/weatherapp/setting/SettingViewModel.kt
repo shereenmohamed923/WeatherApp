@@ -21,11 +21,19 @@ class SettingViewModel(private val settingsRepository: SettingRepository, privat
     }
 
     fun saveTemperatureUnit(unit: String){
-        settingsRepository.saveUnit(unit)
+        settingsRepository.saveTemperatureUnit(unit)
     }
 
     fun getSavedTemperatureUnit(): String{
-        return settingsRepository.getSavedUnit()
+        return settingsRepository.getSavedTemperatureUnit()
+    }
+
+    fun saveWindSpeedUnit(unit: String){
+        settingsRepository.saveWindSpeedUnit(unit)
+    }
+
+    fun getSavedWindSpeedUnit(): String{
+        return settingsRepository.getSavedWindSpeedUnit()
     }
 
     fun saveLocation(lat: Double, lon: Double){

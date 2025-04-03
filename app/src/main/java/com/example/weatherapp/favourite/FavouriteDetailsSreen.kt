@@ -72,6 +72,7 @@ fun FavoriteDetailsScreen(favouriteViewModel: FavouriteViewModel) {
     val hourlyForecastState = favouriteViewModel.hourlyForecastData.collectAsState()
     val dailyForecastState = favouriteViewModel.dailyForecastData.collectAsState()
     val temperatureUnit by homeViewModel.temperatureUnit.collectAsState()
+    val windSpeedUnit by homeViewModel.windSpeedUnit.collectAsState()
     val snackBarHostState = remember { SnackbarHostState() }
 
     Column(
@@ -129,7 +130,7 @@ fun FavoriteDetailsScreen(favouriteViewModel: FavouriteViewModel) {
                         color = Color.White.copy(alpha = 0.7f)
                     )
                     Spacer(Modifier.height(16.dp))
-                    WeatherDetails(currentWeather)
+                    WeatherDetails(currentWeather, windSpeedUnit, context)
                     Spacer(Modifier.height(16.dp))
                     Log.i("HomeScreen", "before: loading")
                     when (val hourlyForecastWeatherState = hourlyForecastState.value) {

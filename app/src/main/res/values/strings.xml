@@ -18,7 +18,7 @@
     <string name="humidity">Humidity</string>
     <string name="pressure">Pressure</string>
     <string name="meter_per_sec">m/s</string>
-    <string name="mile_per_hour">m/h</string>
+    <string name="mile_per_hour">mph</string>
     <string name="next">Next</string>
     <string name="weather_alert">Weather Alert</string>
     <string name="no_network_connection">No network connection</string>
@@ -29,6 +29,8 @@
     <string name="kelvin_title">Kelvin degree</string>
     <string name="celsius_title">Celsius degree</string>
     <string name="fahrenheit_title">Fahrenheit degree</string>
+    <string name="miles_title">miles/hour</string>
+    <string name="meters_title">meter/second</string>
     <string name="no_network_description">You are not connected to the network. Please connect and try again.</string>
 
 </resources>

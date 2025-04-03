@@ -29,4 +29,11 @@ class UnitHelper{
             else -> Pair(temp.toInt(), context.getString(R.string.kelvin))
         }
     }
+    fun convertWindSpeed(windSpeed: Double, unit: String, context: Context): Pair<Int, String>{
+        return when(unit){
+            "miles/hour" -> Pair((windSpeed* 2.236936).toInt(), context.getString(R.string.mile_per_hour))
+            "ميل/الساعة" ->  Pair((windSpeed* 2.236936).toInt(), context.getString(R.string.mile_per_hour))
+            else -> Pair(windSpeed.toInt(), context.getString(R.string.meter_per_sec))
+        }
+    }
 }

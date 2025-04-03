@@ -94,6 +94,7 @@ fun HomeScreen() {
     val hourlyForecastState = homeViewModel.hourlyForecastData.collectAsState()
     val dailyForecastState = homeViewModel.dailyForecastData.collectAsState()
     val temperatureUnit by homeViewModel.temperatureUnit.collectAsState()
+    val windSpeedUnit by homeViewModel.windSpeedUnit.collectAsState()
     val snackBarHostState = remember { SnackbarHostState() }
 
     if (checkPermissions(context)) {
@@ -165,7 +166,7 @@ fun HomeScreen() {
                         color = Color.White.copy(alpha = 0.7f)
                     )
                     Spacer(Modifier.height(16.dp))
-                    WeatherDetails(currentWeather)
+                    WeatherDetails(currentWeather, windSpeedUnit, context)
                     Spacer(Modifier.height(16.dp))
                     Log.i("HomeScreen", "before: loading")
                     when (val hourlyForecastWeatherState = hourlyForecastState.value) {
@@ -227,7 +228,12 @@ fun HomeScreen() {
 }
 
 @Composable
-fun WeatherDetails(currentWeather: CurrentWeatherEntity) {
+fun WeatherDetails(currentWeather: CurrentWeatherEntity, windSpeedUnit: String, context: Context) {
+    val (convertedTemp, unitSymbol) = UnitHelper().convertWindSpeed(
+        currentWeather.windSpeed,
+        windSpeedUnit,
+        context
+    )
     Row(
         modifier = Modifier
             .width(350.dp)
@@ -246,7 +252,7 @@ fun WeatherDetails(currentWeather: CurrentWeatherEntity) {
             image = R.drawable.humidity
         )
         WeatherDetailItem(
-            value = formatNumber(currentWeather.windSpeed.toInt())  + " " + stringResource(R.string.meter_per_sec),
+            value = formatNumber(convertedTemp) + " $unitSymbol",
             label = stringResource(R.string.wind_speed),
             image = R.drawable.wind
         )
