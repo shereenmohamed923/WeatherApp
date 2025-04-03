@@ -29,6 +29,16 @@ class LocationRepositoryImpl private constructor (context: Context): LocationRep
         return Coord(lat, lon)
     }
 
+    override fun saveLocationName(name: String) {
+        sharedPref.edit()
+            .putString("location_name", name)
+            .apply()
+    }
+
+    override fun getSavedLocationName(): String {
+        return sharedPref.getString("location_name", "Current place") ?: "Current place"
+    }
+
     override fun saveLocationPreference(source: String) {
         sharedPref.edit().putString("location_source", source).apply()
     }

@@ -38,13 +38,10 @@ import androidx.navigation.NavController
 import com.example.weatherapp.R
 import com.example.weatherapp.data.repo.LocationRepositoryImpl
 import com.example.weatherapp.data.repo.SettingRepositoryImpl
-import com.example.weatherapp.location.MapScreen
 import com.example.weatherapp.utility.LocalizationHelper
 import com.example.weatherapp.utility.NetworkUtils
 import com.example.weatherapp.utility.getFreshLocation
 import com.example.weatherapp.utility.isLocationEnabled
-import kotlinx.coroutines.flow.filterNotNull
-import kotlinx.coroutines.flow.first
 
 @Composable
 fun SettingScreen(navController: NavController) {
@@ -83,7 +80,7 @@ fun SettingScreen(navController: NavController) {
 
         ExpandableRow(
             title = stringResource(R.string.language),
-            options = listOf("English", "Arabic"),
+            options = listOf(stringResource(R.string.english), stringResource(R.string.arabic)),
             selectedOption = settingsViewModel.getSavedLanguage(),
             onOptionSelected = { lang ->
                 val langHelper = LocalizationHelper(context)
@@ -96,10 +93,10 @@ fun SettingScreen(navController: NavController) {
 
         ExpandableRow(
             title = stringResource(R.string.location),
-            options = listOf("GPS", "Map"),
+            options = listOf(stringResource(R.string.gps), stringResource(R.string.map)),
             selectedOption = "",
             onOptionSelected = { option ->
-                if (option == "GPS") {
+                if (option == "Use GPS" || option == "تحديد الموقع") {
                     if(NetworkUtils.isNetworkAvailable(context)){
                         if (isLocationEnabled(context)) {
                             getFreshLocation()
@@ -129,16 +126,16 @@ fun SettingScreen(navController: NavController) {
                         Text("OK")
                     }
                 },
-                title = { Text("No Internet Connection") },
-                text = { Text("You are not connected to the network. Please connect and try again.") }
+                title = { Text(stringResource(R.string.no_network_connection)) },
+                text = { Text(stringResource(R.string.no_network_description)) }
             )
         }
 
         ExpandableRow(
             title = stringResource(R.string.temperature),
-            options = listOf("Kelvin", "Celsius", "Fahrenheit"),
-            selectedOption = settingsViewModel.getTemperatureUnit(),
-            onOptionSelected = { unit -> settingsViewModel.setTemperatureUnit(unit) },
+            options = listOf(stringResource(R.string.kelvin_title), stringResource(R.string.celsius_title), stringResource(R.string.fahrenheit_title)),
+            selectedOption = settingsViewModel.getSavedTemperatureUnit(),
+            onOptionSelected = { unit -> settingsViewModel.saveTemperatureUnit(unit) },
             expandedStates = expandedStates,
             key = "temperature"
         )

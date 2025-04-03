@@ -66,6 +66,7 @@ import com.example.weatherapp.data.repo.SettingRepositoryImpl
 import com.example.weatherapp.data.repo.WeatherRepositoryImpl
 import com.example.weatherapp.utility.DataResponse
 import com.example.weatherapp.utility.UnitHelper
+import com.example.weatherapp.utility.WeatherIcon
 import com.example.weatherapp.utility.checkPermissions
 import com.example.weatherapp.utility.getFreshLocation
 import com.example.weatherapp.utility.isLocationEnabled
@@ -140,7 +141,7 @@ fun HomeScreen() {
                     )
                     Spacer(Modifier.height(8.dp))
                     Image(
-                        painter = painterResource(id = R.drawable.cloudy_weather),
+                        painter = painterResource(id = WeatherIcon(currentWeather.weatherIcon)),
                         contentDescription = "Weather Icon",
                         modifier = Modifier
                             .width(294.dp)
@@ -299,7 +300,7 @@ fun HourlyForecast(forecast: List<ForecastEntity>, temperatureUnit: String) {
                 HourlyForecastItem(
                     time = item.dateTime,
                     temperature = "${formatNumber(convertedTemp)} $unitSymbol",
-                    iconRes = R.drawable.cloudy_weather
+                    iconRes = WeatherIcon(item.weatherIcon)
                 )
             }
         }
@@ -311,8 +312,8 @@ fun HourlyForecast(forecast: List<ForecastEntity>, temperatureUnit: String) {
 fun HourlyForecastItem(time: String, temperature: String, iconRes: Int) {
     Card(
         modifier = Modifier
-            .width(80.dp)
-            .height(120.dp)
+            .width(100.dp)
+            .height(140.dp)
             .clip(RoundedCornerShape(16.dp))
             .padding(4.dp),
         colors = CardDefaults.cardColors(
@@ -350,7 +351,7 @@ fun HourlyForecastItem(time: String, temperature: String, iconRes: Int) {
                 Image(
                     painter = painterResource(id = iconRes),
                     contentDescription = "Weather Icon",
-                    modifier = Modifier.size(40.dp)
+                    modifier = Modifier.size(30.dp)
                 )
 
                 Text(
@@ -390,7 +391,7 @@ fun DailyForecast(forecast: List<ForecastEntity>, temperatureUnit: String) {
                     item.dateTime,
                     "${formatNumber(convertedTemp)} $unitSymbol",
                     item.weatherDescription,
-                    R.drawable.cloudy_weather
+                    WeatherIcon(item.weatherIcon)
                 )
             }
         }

@@ -20,11 +20,11 @@ class SettingViewModel(private val settingsRepository: SettingRepository, privat
         settingsRepository.saveLanguage(languageCode)
     }
 
-    fun setTemperatureUnit(unit: String){
+    fun saveTemperatureUnit(unit: String){
         settingsRepository.saveUnit(unit)
     }
 
-    fun getTemperatureUnit(): String{
+    fun getSavedTemperatureUnit(): String{
         return settingsRepository.getSavedUnit()
     }
 

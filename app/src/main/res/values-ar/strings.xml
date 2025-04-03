@@ -20,4 +20,15 @@
     <string name="pressure">ضغط الجو</string>
     <string name="meter_per_sec">م/س</string>
     <string name="mile_per_hour">م/س</string>
+    <string name="next">التالي</string>
+    <string name="weather_alert">منبه الطقس</string>
+    <string name="no_network_connection">لا يوجد اتصال بالانترنت</string>
+    <string name="english">الانجليزية</string>
+    <string name="arabic">العربية</string>
+    <string name="gps">تحديد الموقع</string>
+    <string name="map">اختار من الخريطة</string>
+    <string name="kelvin_title">درجة كلفن</string>
+    <string name="celsius_title">درجة مئوية</string>
+    <string name="fahrenheit_title">درجة فهرنهايت</string>
+    <string name="no_network_description">انت غير متصل بالانترنت برجاء الاتصال بالانترنت و المحاولة مرة اخري</string>
 </resources>

@@ -92,6 +92,7 @@ class HomeViewModel(
                 }
             data.collect { updatedData ->
                 Log.d("date update", "Response: $updatedData")
+                locationRepository.saveLocationName(updatedData.cityName)
                 _weatherData.value = DataResponse.Success(updatedData)
                 if (isOnline) {
                     try {

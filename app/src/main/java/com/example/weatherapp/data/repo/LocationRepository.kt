@@ -8,6 +8,8 @@ interface LocationRepository {
     val locationFlow: StateFlow<Location?>
     fun saveLocation(lat: Double, lon: Double)
     fun getSavedLocation(): Coord
+    fun saveLocationName(name: String)
+    fun getSavedLocationName(): String
     fun saveLocationPreference(source: String)
     fun getLocationPreference(): String
 }

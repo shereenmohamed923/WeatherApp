@@ -3,6 +3,7 @@ package com.example.weatherapp.data.repo
 import com.example.weatherapp.data.local.LocalDataSource
 import com.example.weatherapp.data.local.entities.CurrentWeatherEntity
 import com.example.weatherapp.data.local.entities.ForecastEntity
+import com.example.weatherapp.data.local.entities.WeatherAlertsEntity
 import com.example.weatherapp.data.model.City
 import com.example.weatherapp.data.model.Clouds
 import com.example.weatherapp.data.model.Coord
@@ -164,6 +165,26 @@ class WeatherRepositoryImpl private constructor(
 
     override suspend fun removeFavoriteCity(cityId: Int){
         localDataSource.deleteFavoriteCity(cityId)
+    }
+
+    override suspend fun addAlert(alert: WeatherAlertsEntity): Long {
+        return localDataSource.insertAlert(alert)
+    }
+
+    override suspend fun editAlert(alert: WeatherAlertsEntity) {
+        localDataSource.updateAlert(alert)
+    }
+
+    override suspend fun removeAlert(alert: WeatherAlertsEntity) {
+        localDataSource.deleteAlert(alert)
+    }
+
+    override suspend fun getAlertById(alertId: Long): WeatherAlertsEntity {
+        return localDataSource.getAlertById(alertId)
+    }
+
+    override suspend fun getAllAlerts(): Flow<List<WeatherAlertsEntity>> {
+        return localDataSource.getAllAlerts()
     }
 
     companion object{

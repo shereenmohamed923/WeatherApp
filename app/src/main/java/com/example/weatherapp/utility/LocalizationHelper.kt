@@ -22,8 +22,10 @@ class LocalizationHelper(private val context: Context) {
 class UnitHelper{
     fun convertTemperature(temp: Double, unit: String, context: Context): Pair<Int, String>{
         return when(unit){
-            "Celsius" -> Pair((temp - 273.15).toInt(), context.getString(R.string.celsius))
-            "Fahrenheit" -> Pair(((temp - 273.15) * 9 / 5 + 32).toInt(), context.getString(R.string.fahrenheit))
+            "Celsius degree" -> Pair((temp - 273.15).toInt(), context.getString(R.string.celsius))
+            "درجة مئوية" -> Pair((temp - 273.15).toInt(), context.getString(R.string.celsius))
+            "Fahrenheit degree" -> Pair(((temp - 273.15) * 9 / 5 + 32).toInt(), context.getString(R.string.fahrenheit))
+            "درجة فهرنهايت" -> Pair(((temp - 273.15) * 9 / 5 + 32).toInt(), context.getString(R.string.fahrenheit))
             else -> Pair(temp.toInt(), context.getString(R.string.kelvin))
         }
     }

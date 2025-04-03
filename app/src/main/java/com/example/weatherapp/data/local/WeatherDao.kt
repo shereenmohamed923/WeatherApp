@@ -1,11 +1,14 @@
 package com.example.weatherapp.data.local
 
 import androidx.room.Dao
+import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Update
 import com.example.weatherapp.data.local.entities.CurrentWeatherEntity
 import com.example.weatherapp.data.local.entities.ForecastEntity
+import com.example.weatherapp.data.local.entities.WeatherAlertsEntity
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -40,5 +43,20 @@ interface WeatherDao {
 
     @Query("DELETE FROM current_weather WHERE isFav = 1 AND cityId = :cityId")
     suspend fun deleteFavoriteCity(cityId: Int) //where isFav = true && id = cityId
+
+    @Insert
+    suspend fun insertAlert(alert: WeatherAlertsEntity): Long
+
+    @Query("SELECT * FROM weather_alerts")
+    fun getAllAlerts(): Flow<List<WeatherAlertsEntity>>
+
+    @Query("SELECT * FROM weather_alerts WHERE id = :alertId")
+    suspend fun getAlertById(alertId: Long): WeatherAlertsEntity
+
+    @Update
+    suspend fun updateAlert(alert: WeatherAlertsEntity)
+
+    @Delete
+    suspend fun deleteAlert(alert: WeatherAlertsEntity)
 
 }

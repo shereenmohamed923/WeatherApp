@@ -9,10 +9,13 @@ import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.rememberScrollableState
+import androidx.compose.foundation.gestures.scrollable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -22,6 +25,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material3.Button
@@ -30,6 +34,8 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -41,6 +47,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -54,6 +61,7 @@ import com.example.weatherapp.data.remote.RemoteDataSourceImpl
 import com.example.weatherapp.data.remote.RetrofitHelper
 import com.example.weatherapp.data.repo.WeatherRepositoryImpl
 import com.example.weatherapp.utility.DataResponse
+import com.example.weatherapp.utility.WeatherIcon
 
 @RequiresApi(Build.VERSION_CODES.O)
 @SuppressLint("UnusedMaterial3ScaffoldPaddingParameter")
@@ -68,11 +76,9 @@ fun FavouriteScreen(navController: NavController, favouriteViewModel: FavouriteV
         floatingActionButton = {
             FloatingActionButton(
                 onClick = { navController.navigate("location/favorites") },
-                containerColor = Color(0xFF523D7F),
-                contentColor = Color.White
             ) {
                 Icon(
-                    painter = painterResource(id = android.R.drawable.ic_menu_mylocation),
+                    imageVector = Icons.Default.Add,
                     contentDescription = "Add location"
                 )
             }
@@ -102,7 +108,8 @@ fun FavouriteScreen(navController: NavController, favouriteViewModel: FavouriteV
                     Column(
                         modifier = Modifier
                             .fillMaxSize()
-                            .padding(16.dp),
+                            .padding(16.dp)
+//                            .scrollable()
                     ) {
                         when(val state = favouritePlacesState.value){
                             is DataResponse.Loading -> {
@@ -150,7 +157,7 @@ fun FavouritePlaces(places: List<CurrentWeatherEntity>, viewModel: FavouriteView
                 WeatherCard(
                     city = place.cityName,
                     condition = place.weatherDescription,
-                    iconRes = R.drawable.cloudy_weather,
+                    iconRes = WeatherIcon(place.weatherIcon),
                     cityId = place.cityId,
                     onClick = {
                         viewModel.refreshWeatherData(place.cityId, place.lat, place.lon)
@@ -168,60 +175,47 @@ fun FavouritePlaces(places: List<CurrentWeatherEntity>, viewModel: FavouriteView
 @Composable
 fun WeatherCard(city: String, condition: String, iconRes: Int, cityId: Int, onClick: () -> Unit,  onDelete: (cityId: Int) -> Unit ={}) {
     Card(
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = Color.Transparent
-        ),
         modifier = Modifier
             .fillMaxWidth()
-            .height(100.dp)
+            .padding(vertical = 8.dp)
             .clickable {
                 onClick()
             },
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+        elevation = CardDefaults.cardElevation(4.dp)
     ) {
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(
-                    brush = Brush.verticalGradient(
-                        colors = listOf(
-                            Color(0xFF957DCD),
-                            Color(0xFF523D7F)
-                        )
-                    ),
-                    shape = RoundedCornerShape(16.dp)
-                )
-                .padding(horizontal = 12.dp, vertical = 8.dp),
-            contentAlignment = Alignment.Center
-        ) {
             Row(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(16.dp),
                 verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.SpaceBetween
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Column {
-                    Text(text = city, fontSize = 18.sp, color = Color.White)
-                    Text(text = condition, fontSize = 14.sp, color = Color.White.copy(alpha = 0.7f))
-                }
                 Image(
                     painter = painterResource(id = iconRes),
                     contentDescription = "",
                     modifier = Modifier
-                        .size(80.dp),
+                        .size(40.dp),
                     contentScale = ContentScale.Fit
                 )
-                Button(
-                    onClick = { onDelete(cityId) }
-                ) { Icon(
+                Column {
+                    Text(
+                        text = city,
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        text = condition,
+                        fontSize = 14.sp,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+                Spacer(modifier = Modifier.fillMaxWidth(fraction = 0.8f))
+                IconButton(onClick = { onDelete(cityId) }) {
+                    Icon(
                     imageVector = Icons.Default.Delete,
-                    contentDescription = "",
-                    tint = Color.Red
+                    contentDescription = "Delete favourite",
+                    tint = MaterialTheme.colorScheme.error
                 ) }
             }
-        }
 
     }
 }

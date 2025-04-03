@@ -2,6 +2,7 @@ package com.example.weatherapp.data.local
 
 import com.example.weatherapp.data.local.entities.CurrentWeatherEntity
 import com.example.weatherapp.data.local.entities.ForecastEntity
+import com.example.weatherapp.data.local.entities.WeatherAlertsEntity
 import kotlinx.coroutines.flow.Flow
 
 class LocalDataSourceImpl(private val dao: WeatherDao): LocalDataSource {
@@ -44,6 +45,26 @@ class LocalDataSourceImpl(private val dao: WeatherDao): LocalDataSource {
 
     override suspend fun deleteFavoriteCity(cityId: Int) {
         dao.deleteFavoriteCity(cityId)
+    }
+
+    override suspend fun insertAlert(alert: WeatherAlertsEntity): Long {
+        return dao.insertAlert(alert)
+    }
+
+    override suspend fun updateAlert(alert: WeatherAlertsEntity) {
+        dao.updateAlert(alert)
+    }
+
+    override suspend fun deleteAlert(alert: WeatherAlertsEntity) {
+        dao.deleteAlert(alert)
+    }
+
+    override suspend fun getAlertById(alertId: Long): WeatherAlertsEntity {
+        return dao.getAlertById(alertId)
+    }
+
+    override suspend fun getAllAlerts(): Flow<List<WeatherAlertsEntity>> {
+        return dao.getAllAlerts()
     }
 
 }
