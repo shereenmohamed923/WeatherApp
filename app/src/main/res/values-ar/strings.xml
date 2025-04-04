@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">تطبيق الطقس</string>
+    <string name="app_name">نشرة</string>
     <string name="home">الصفحة الرئيسة</string>
     <string name="favourite">صفحة المفضلات</string>
     <string name="alert">صفحة الانذار</string>

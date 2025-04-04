@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">WeatherApp</string>
+    <string name="app_name">Nashra</string>
     <string name="home">Home screen</string>
     <string name="favourite">Favourite screen</string>
     <string name="alert">Alert screen</string>
