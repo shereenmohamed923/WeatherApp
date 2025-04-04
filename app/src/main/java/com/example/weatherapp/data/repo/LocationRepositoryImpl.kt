@@ -43,8 +43,8 @@ class LocationRepositoryImpl private constructor (context: Context): LocationRep
         sharedPref.edit().putString("location_source", source).apply()
     }
 
-    override fun getLocationPreference(): String {
-        return sharedPref.getString("location_source", "GPS") ?: "GPS"
+    override fun getSavedLocationPreference(): String {
+        return sharedPref.getString("location_source", "gps") ?: "gps"
     }
 
     companion object{

@@ -6,6 +6,7 @@ import android.content.Intent
 import android.os.Build
 import android.provider.Settings
 import android.util.Log
+import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -28,6 +29,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.SnackbarDuration
 import androidx.compose.material3.SnackbarHostState
 import androidx.compose.material3.Text
@@ -56,9 +58,6 @@ import com.example.weatherapp.data.local.LocalDataSourceImpl
 import com.example.weatherapp.data.local.WeatherDatabase
 import com.example.weatherapp.data.local.entities.CurrentWeatherEntity
 import com.example.weatherapp.data.local.entities.ForecastEntity
-import com.example.weatherapp.data.model.CurrentWeatherResponse
-import com.example.weatherapp.data.model.ForecastItem
-import com.example.weatherapp.data.model.ForecastResponse
 import com.example.weatherapp.data.remote.RemoteDataSourceImpl
 import com.example.weatherapp.data.remote.RetrofitHelper
 import com.example.weatherapp.data.repo.LocationRepositoryImpl
@@ -120,6 +119,11 @@ fun HomeScreen() {
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center
     ) {
+        LaunchedEffect(Unit) {
+            homeViewModel.toastEvent.collect {
+                Toast.makeText(context, it, Toast.LENGTH_SHORT).show()
+            }
+        }
         when (val state = currentWeatherState.value) {
             is DataResponse.Loading -> {
                 Log.i("HomeScreen", "currentWeatherState: loading")
@@ -349,7 +353,7 @@ fun HourlyForecastItem(time: String, temperature: String, iconRes: Int) {
             ) {
                 Text(
                     text = time,
-                    fontSize = 14.sp,
+                    fontSize = 16.sp,
                     color = Color.White,
                     fontWeight = FontWeight.Bold
                 )

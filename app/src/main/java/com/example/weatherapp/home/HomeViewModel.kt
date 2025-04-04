@@ -52,7 +52,7 @@ class HomeViewModel(
             val lon: Double
             if (locationRepository.getSavedLocation() == Coord(0.0, 0.0)) {
                 val location = locationRepository.locationFlow.filterNotNull()
-                    .first() //!!!!should be handled if null
+                    .first()
                 lat = location.latitude
                 lon = location.longitude
                 locationRepository.saveLocation(lat = location.latitude, lon = location.longitude)
@@ -88,13 +88,16 @@ class HomeViewModel(
 
     private fun getWeatherData(coord: Coord, isOnline: Boolean, lang: String) {
         viewModelScope.launch(Dispatchers.IO) {
+            if(!settingRepository.checkNetworkConnection()){
+                _toastEvent.emit("No network connection")
+            }
             val data = repository.getCurrentWeather(coord, isOnline, lang)
                 .map { data ->
                     data.copy(lastUpdatedDate = getCurrentDateTime())
                 }
                 .catch { ex ->
                     _weatherData.value = DataResponse.Failure(ex)
-                    _toastEvent.emit("Couldn't fetch data ${ex.message}")
+                    _toastEvent.emit("couldn't get weather details")
                 }
             data.collect { updatedData ->
                 Log.d("date update", "Response: $updatedData")
@@ -102,7 +105,6 @@ class HomeViewModel(
                 _weatherData.value = DataResponse.Success(updatedData)
                 if (isOnline) {
                     try {
-                        repository.removeCurrentWeather()
                         repository.addCurrentWeather(currentWeather = updatedData)
                     } catch (e: Exception) {
                         Log.e("home viewmodel", "addCurrentWeather: no data to show")
@@ -119,7 +121,7 @@ class HomeViewModel(
                 repository.getForecastWeather(coord, isOnline, lang)
                     .catch { ex ->
                         _hourlyForecastData.value = DataResponse.Failure(ex)
-                        _toastEvent.emit("Couldn't fetch data: ${ex.message}")
+                        _toastEvent.emit("Couldn't get today's weather forecast")
                     }.map { forecastResponse ->
                         if (isOnline) {
                             try {
@@ -150,7 +152,7 @@ class HomeViewModel(
 
             } catch (ex: Exception) {
                 _hourlyForecastData.value = DataResponse.Failure(ex)
-                _toastEvent.emit("Couldn't fetch data ${ex.message}")
+                _toastEvent.emit("An error occurred")
             }
         }
     }
@@ -163,7 +165,7 @@ class HomeViewModel(
                 repository.getForecastWeather(coord, isOnline, lang)
                     .catch { ex ->
                         _dailyForecastData.value = DataResponse.Failure(ex)
-                        _toastEvent.emit("Couldn't fetch data: ${ex.message}")
+                        _toastEvent.emit("Couldn't get weekly weather forecast")
                     }
                     .map { forecastList ->
                         val groupedByDate = forecastList.groupBy { it.dateTime.substring(0, 10) }
@@ -183,7 +185,7 @@ class HomeViewModel(
                     }
             } catch (ex: Exception) {
                 _dailyForecastData.value = DataResponse.Failure(ex)
-                _toastEvent.emit("Couldn't fetch data ${ex.message}")
+                _toastEvent.emit("An error occurred")
             }
 
         }

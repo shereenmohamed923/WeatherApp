@@ -40,6 +40,14 @@ class SettingViewModel(private val settingsRepository: SettingRepository, privat
         locationRepository.saveLocation(lat, lon)
     }
 
+    fun saveLocationPreference(source: String){
+        locationRepository.saveLocationPreference(source)
+    }
+
+    fun getSavedLocationPreference(): String{
+        return locationRepository.getSavedLocationPreference()
+    }
+
     fun saveGps(){
         viewModelScope.launch {
             val location = locationRepository.locationFlow.filterNotNull().first()

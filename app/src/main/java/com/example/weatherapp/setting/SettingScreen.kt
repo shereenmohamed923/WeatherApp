@@ -81,10 +81,10 @@ fun SettingScreen(navController: NavController) {
         ExpandableRow(
             title = stringResource(R.string.language),
             options = listOf(stringResource(R.string.english), stringResource(R.string.arabic)),
-            selectedOption = settingsViewModel.getSavedLanguage(),
+            initialSelectedOption = if(settingsViewModel.getSavedLanguage() == "en") context.getString(R.string.english) else context.getString(R.string.arabic),
             onOptionSelected = { lang ->
                 val langHelper = LocalizationHelper(context)
-                val langCode = langHelper.setLanguage(if (lang == "English" || lang == "الانجليزية") "en" else "ar")
+                val langCode = langHelper.setLanguage(if (lang == context.getString(R.string.english)) "en" else "ar")
                 settingsViewModel.saveLanguage(langCode)
             },
             expandedStates = expandedStates,
@@ -94,13 +94,16 @@ fun SettingScreen(navController: NavController) {
         ExpandableRow(
             title = stringResource(R.string.location),
             options = listOf(stringResource(R.string.gps), stringResource(R.string.map)),
-            selectedOption = "",
+            initialSelectedOption =
+            if(settingsViewModel.getSavedLocationPreference() == "gps") context.getString(R.string.gps)
+            else context.getString(R.string.map),
             onOptionSelected = { option ->
-                if (option == "Use GPS" || option == "تحديد الموقع") {
+                if (option == context.getString(R.string.gps)) {
                     if(NetworkUtils.isNetworkAvailable(context)){
                         if (isLocationEnabled(context)) {
                             getFreshLocation()
                             settingsViewModel.saveGps()
+                            settingsViewModel.saveLocationPreference("gps")
                         } else {
                             val intent = Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS)
                             context.startActivity(intent)
@@ -134,9 +137,9 @@ fun SettingScreen(navController: NavController) {
         ExpandableRow(
             title = stringResource(R.string.temperature),
             options = listOf(stringResource(R.string.kelvin_title), stringResource(R.string.celsius_title), stringResource(R.string.fahrenheit_title)),
-            selectedOption = ""/*settingsViewModel.getSavedTemperatureUnit()*/,
+            initialSelectedOption = settingsViewModel.getSavedTemperatureUnit(),
             onOptionSelected = { unit ->
-                if(unit == "Fahrenheit degree" || unit == "درجة فهرنهايت"){
+                if(unit == context.getString(R.string.fahrenheit_title)){
                     settingsViewModel.saveWindSpeedUnit("miles/hour")
                 }else{
                     settingsViewModel.saveWindSpeedUnit("meter/second")
@@ -152,11 +155,12 @@ fun SettingScreen(navController: NavController) {
 fun ExpandableRow(
     title: String,
     options: List<String>,
-    selectedOption: String,
+    initialSelectedOption: String,
     onOptionSelected: (String) -> Unit,
     expandedStates: MutableMap<String, Boolean>,
     key: String
 ) {
+    var selectedOption by remember { mutableStateOf(initialSelectedOption) }
     Column(modifier = Modifier.fillMaxWidth()) {
         Row(
             modifier = Modifier
@@ -185,7 +189,10 @@ fun ExpandableRow(
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .clickable { onOptionSelected(option) }
+                            .clickable {
+                                selectedOption = option
+                                onOptionSelected(option)
+                            }
                             .padding(8.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {

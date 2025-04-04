@@ -29,6 +29,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
+import com.example.weatherapp.R
 import com.example.weatherapp.data.local.LocalDataSourceImpl
 import com.example.weatherapp.data.local.WeatherDatabase
 import com.example.weatherapp.data.local.entities.CurrentWeatherEntity
@@ -133,6 +134,7 @@ fun MapScreen(navController: NavHostController, source: String) {
                                 lat = selectedLocation.latitude,
                                 lon = selectedLocation.longitude
                             )
+                            settingsViewModel.saveLocationPreference("map")
                         }else if(source == "favorites"){
                             favouritesViewModel.getFavoriteCity(
                                 coord = Coord(

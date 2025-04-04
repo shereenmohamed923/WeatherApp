@@ -11,5 +11,5 @@ interface LocationRepository {
     fun saveLocationName(name: String)
     fun getSavedLocationName(): String
     fun saveLocationPreference(source: String)
-    fun getLocationPreference(): String
+    fun getSavedLocationPreference(): String
 }

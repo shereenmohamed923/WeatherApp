@@ -5,8 +5,16 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.graphics.BitmapFactory
+import android.graphics.drawable.BitmapDrawable
+import android.graphics.drawable.Icon
 import android.os.Build
 import android.util.Log
+import androidx.compose.material3.Icon
+import androidx.compose.material3.Text
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.sp
 import androidx.core.app.NotificationCompat
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
@@ -20,7 +28,9 @@ import com.example.weatherapp.data.remote.RetrofitHelper
 import com.example.weatherapp.data.repo.LocationRepositoryImpl
 import com.example.weatherapp.data.repo.SettingRepositoryImpl
 import com.example.weatherapp.data.repo.WeatherRepositoryImpl
+import com.example.weatherapp.home.formatNumber
 import com.example.weatherapp.utility.NetworkUtils
+import com.example.weatherapp.utility.UnitHelper
 import com.example.weatherapp.utility.WeatherIcon
 import kotlinx.coroutines.flow.catch
 
@@ -95,6 +105,7 @@ class WeatherAlertWorker(
             .setContentTitle(title)
             .setContentText(message)
             .setSmallIcon(iconRes)
+            .setLargeIcon(BitmapFactory.decodeResource(applicationContext.resources, iconRes))
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setAutoCancel(true)
             .setContentIntent(pendingIntent)

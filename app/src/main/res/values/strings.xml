@@ -32,5 +32,6 @@
     <string name="miles_title">miles/hour</string>
     <string name="meters_title">meter/second</string>
     <string name="no_network_description">You are not connected to the network. Please connect and try again.</string>
+    <string name="see_full">See full forecast</string>
 
 </resources>

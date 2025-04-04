@@ -1,10 +1,15 @@
 package com.example.weatherapp.alert
 
+import android.Manifest
 import android.annotation.SuppressLint
 import android.app.TimePickerDialog
 import android.content.Context
+import android.content.pm.PackageManager
 import android.os.Build
 import android.util.Log
+import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -36,6 +41,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -50,6 +56,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.weatherapp.R
 import com.example.weatherapp.data.local.LocalDataSourceImpl
@@ -83,6 +90,8 @@ fun AlertScreen() {
     alertViewModel.getAllAlerts(context)
     val alertState = alertViewModel.allAlerts.collectAsState()
     val showDialog = remember { mutableStateOf(false) }
+
+    RequestNotificationPermission()
 
     Scaffold(
         floatingActionButton = {
@@ -245,5 +254,37 @@ fun DateTimePickerDialog(
             calendar.get(Calendar.MINUTE),
             true
         ).show()
+    }
+}
+
+@Composable
+fun RequestNotificationPermission() {
+    val context = LocalContext.current
+    val permissionState = remember {
+        mutableStateOf(
+            ContextCompat.checkSelfPermission(
+                context,
+                Manifest.permission.POST_NOTIFICATIONS
+            ) == PackageManager.PERMISSION_GRANTED
+        )
+    }
+
+    // Launcher for permission
+    val launcher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        permissionState.value = isGranted
+        if (!isGranted) {
+            Toast.makeText(context, "Notification permission denied", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    // Ask only on Android 13+
+    LaunchedEffect(Unit) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+            !permissionState.value
+        ) {
+            launcher.launch(Manifest.permission.POST_NOTIFICATIONS)
+        }
     }
 }

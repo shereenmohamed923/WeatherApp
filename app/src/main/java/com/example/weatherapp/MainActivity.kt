@@ -190,7 +190,6 @@ fun BottomNavigationBar(navController: NavHostController) {
                     unselectedIconColor = Color.White,
                     selectedTextColor = Color.White,
                     indicatorColor = Color.Transparent
-
                 )
             )
         }

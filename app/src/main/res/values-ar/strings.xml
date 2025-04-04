@@ -33,4 +33,5 @@
     <string name="miles_title">ميل/الساعة</string>
     <string name="meters_title">متر/الثانية</string>
     <string name="no_network_description">انت غير متصل بالانترنت برجاء الاتصال بالانترنت و المحاولة مرة اخري</string>
+    <string name="see_full">رؤية التوقعات الكاملة</string>
 </resources>

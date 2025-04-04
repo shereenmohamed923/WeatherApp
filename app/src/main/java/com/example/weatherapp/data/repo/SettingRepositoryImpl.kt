@@ -29,7 +29,7 @@ class SettingRepositoryImpl private constructor(private val context: Context): S
     }
 
     override fun getSavedTemperatureUnit(): String {
-        return sharedPref.getString("temp_unit", "Kelvin degree") ?: "Kelvin degree"
+        return sharedPref.getString("temp_unit", "Kelvin") ?: "Kelvin"
     }
 
     override fun saveWindSpeedUnit(unit: String) {
