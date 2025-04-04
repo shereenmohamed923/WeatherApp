@@ -17,7 +17,7 @@ import com.example.weatherapp.data.remote.RemoteDataSource
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
-class WeatherRepositoryImpl private constructor(
+class WeatherRepositoryImpl(
     private val remoteDataSource: RemoteDataSource,
     private val localDataSource: LocalDataSource
 ): WeatherRepository {

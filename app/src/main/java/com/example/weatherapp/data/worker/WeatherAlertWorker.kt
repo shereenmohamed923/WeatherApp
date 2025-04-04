@@ -2,12 +2,15 @@ package com.example.weatherapp.data.worker
 
 import android.app.NotificationChannel
 import android.app.NotificationManager
+import android.app.PendingIntent
 import android.content.Context
+import android.content.Intent
 import android.os.Build
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
+import com.example.weatherapp.MainActivity
 import com.example.weatherapp.R
 import com.example.weatherapp.data.local.LocalDataSourceImpl
 import com.example.weatherapp.data.local.WeatherDatabase
@@ -32,7 +35,6 @@ class WeatherAlertWorker(
                 WeatherDatabase.getInstance(context).weatherDao())
         )
     private val settingRepository = SettingRepositoryImpl.getInstance(context)
-    private val locationRepository = LocationRepositoryImpl.getInstance(context)
 
     override suspend fun doWork(): Result {
         val alertId = inputData.getLong("alert_id", -1)
@@ -78,12 +80,24 @@ class WeatherAlertWorker(
             notificationManager.createNotificationChannel(channel)
         }
 
+        val intent = Intent(applicationContext, MainActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        }
+
+        val pendingIntent = PendingIntent.getActivity(
+            applicationContext,
+            0,
+            intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+
         val notification = NotificationCompat.Builder(applicationContext, "weather_channel")
             .setContentTitle(title)
             .setContentText(message)
             .setSmallIcon(iconRes)
             .setPriority(NotificationCompat.PRIORITY_HIGH)
             .setAutoCancel(true)
+            .setContentIntent(pendingIntent)
             .build()
 
         notificationManager.notify(System.currentTimeMillis().toInt(), notification)

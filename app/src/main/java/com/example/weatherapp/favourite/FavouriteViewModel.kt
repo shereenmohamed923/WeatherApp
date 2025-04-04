@@ -61,7 +61,8 @@ class FavouriteViewModel(
         }
     }
 
-    private fun addFavouritePlace(cityCurrentWeather: CurrentWeatherEntity){
+    //////////////////test
+    fun addFavouritePlace(cityCurrentWeather: CurrentWeatherEntity){
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 weatherRepository.addFavoriteCity(cityCurrentWeather)
@@ -70,7 +71,8 @@ class FavouriteViewModel(
             }
         }
     }
-    private fun addFavouriteForecast(cityForecastWeather: List<ForecastEntity>){
+
+    fun addFavouriteForecast(cityForecastWeather: List<ForecastEntity>){
         viewModelScope.launch(Dispatchers.IO) {
             try {
                 weatherRepository.addForecast(cityForecastWeather)
